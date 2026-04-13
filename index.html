@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>AlBar Health</title>
+<!-- Telegram WebApp script removed for web deployment -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #1a3352;
+  --accent-2: #234670;
+  --accent-light: #e8eff8;
+  --accent-mid: #c0d4ea;
+  --gold: #b8860b;
+  --gold-2: #d4a843;
+  --gold-light: #fdf6e3;
+  --text: #1a1a2e;
+  --text-soft: #5a6a7a;
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --border: #e0e6ed;
+  --red: #b33a3a;
+  --red-light: #fef2f2;
+  --green: #1a7a4a;
+  --green-light: #ecfdf5;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 2px 12px rgba(26,51,82,0.06);
+  --shadow-md: 0 4px 24px rgba(26,51,82,0.1);
+  --shadow-lg: 0 8px 40px rgba(26,51,82,0.12);
+  --font-body: 'IBM Plex Sans Arabic', sans-serif;
+  --font-head: 'Noto Kufi Arabic', sans-serif;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+- { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior: smooth; }
+  body { font-family:var(--font-body); font-size:15px; background:var(--bg); color:var(--text); line-height:1.75; overflow-x:hidden; }
+  @keyframes fadeIn {
+  from { opacity:0; }
+  to { opacity:1; }
+  }
+  @keyframes slideUp {
+  from { opacity:0; transform:translateY(16px); }
+  to { opacity:1; transform:translateY(0); }
+  }
+
+/* ── HEADER ── */
+.hdr { background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:100; box-shadow:0 4px 20px rgba(26,51,82,0.25); }
+.hdr::after { content:’’; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(212,168,67,0.4),transparent); }
+.hdr-logo { width:36px; height:36px; border-radius:50%; background:#fff; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+.hdr-logo img { width:30px; height:30px; object-fit:contain; }
+.hdr-title { font-family:var(--font-head); font-weight:800; font-size:14px; color:var(--gold-2); flex:1; }
+
+/* ── BOTTOM NAV ── */
+.bnav { position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); display:flex; border-top:1px solid var(--border); z-index:100; padding-bottom:env(safe-area-inset-bottom,0); box-shadow:0 -2px 16px rgba(0,0,0,0.04); }
+.ni { flex:1; display:flex; flex-direction:column; align-items:center; padding:10px 4px 8px; cursor:pointer; gap:2px; transition:var(--transition); position:relative; }
+.ni .ico { font-size:20px; line-height:1; transition:var(--transition); }
+.ni .lbl { font-size:10px; font-weight:600; color:var(--text-soft); transition:var(--transition); }
+.ni.active::before { content:’’; position:absolute; top:0; left:25%; right:25%; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-2)); border-radius:0 0 3px 3px; }
+.ni.active .lbl { color:var(--accent); font-weight:700; }
+.ni.active .ico { transform:translateY(-2px) scale(1.1); }
+
+/* ── LAYOUT ── */
+.pc { padding:16px 14px 100px; max-width:480px; margin:0 auto; }
+.tab { display:none; } .tab.active { display:block; animation: fadeIn 0.35s ease; }
+
+/* ── HERO ── */
+.hero { background:linear-gradient(135deg,var(--accent) 0%,#1a3f5c 50%,var(--accent-2) 100%); border-radius:var(--radius); padding:22px 20px; color:#fff; margin-bottom:16px; position:relative; overflow:hidden; box-shadow:var(--shadow-md); }
+.hero::before { content:’’; position:absolute; top:-30%; right:-20%; width:200px; height:200px; background:radial-gradient(circle,rgba(212,168,67,0.12),transparent 70%); }
+.hero-title { font-family:var(--font-head); font-size:20px; font-weight:900; margin-bottom:6px; line-height:1.3; color:var(--gold-2); position:relative; }
+.hero-sub { font-size:13px; color:rgba(255,255,255,0.8); line-height:1.7; position:relative; }
+
+/* ── TIP ── */
+.tip-box { background:linear-gradient(135deg,var(--gold-light),#fff9ed); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px; border-right:4px solid var(--gold); display:flex; gap:12px; align-items:flex-start; box-shadow:var(--shadow); animation: slideUp 0.5s 0.2s both; }
+.tip-label { font-size:10px; font-weight:700; color:var(--gold); letter-spacing:0.5px; margin-bottom:4px; text-transform:uppercase; }
+.tip-text { font-size:13px; font-weight:600; color:var(--text); line-height:1.7; }
+
+/* ── QUICK GRID ── */
+.qgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.qcard { background:var(--surface); border-radius:var(--radius); padding:18px 14px; cursor:pointer; border:1.5px solid var(--border); transition:var(--transition); box-shadow:var(--shadow); }
+.qcard:active { border-color:var(--gold); transform:scale(0.97); box-shadow:var(--shadow-md); }
+.qcard .qi { font-size:28px; margin-bottom:8px; }
+.qcard .qt { font-family:var(--font-head); font-weight:800; font-size:14px; color:var(--text); }
+.qcard .qs { font-size:11px; color:var(--text-soft); margin-top:3px; }
+
+/* ── EMERGENCY ── */
+.emg { background:linear-gradient(135deg,#fef2f2,#fff5f5); border-radius:var(--radius); padding:16px; border:1.5px solid #f5c6c6; margin-bottom:14px; box-shadow:var(--shadow); }
+.emg-title { font-family:var(--font-head); font-weight:800; font-size:14px; color:var(--red); margin-bottom:10px; }
+.emg ul { list-style:none; }
+.emg ul li { font-size:13px; padding:6px 0; padding-right:22px; position:relative; color:var(--text); border-bottom:1px solid #fecaca; }
+.emg ul li:last-child { border-bottom:none; }
+.emg ul li::before { content:’!’; position:absolute; right:0; top:7px; background:var(--red); color:#fff; width:15px; height:15px; border-radius:50%; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.emg-call { display:block; background:linear-gradient(135deg,var(--red),#c0392b); color:#fff; text-align:center; padding:13px; border-radius:var(--radius-sm); font-family:var(--font-head); font-weight:800; font-size:14px; text-decoration:none; margin-top:12px; box-shadow:0 4px 12px rgba(179,58,58,0.25); transition:var(--transition); }
+.emg-call:active { transform:scale(0.97); }
+
+/* ── SEARCH ── */
+.srch { background:var(--surface); border-radius:var(--radius); padding:12px 14px; display:flex; align-items:center; gap:10px; margin-bottom:14px; border:1.5px solid var(--border); transition:var(--transition); box-shadow:var(--shadow); }
+.srch:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,134,11,0.1); }
+.srch input { flex:1; border:none; outline:none; font-family:var(--font-body); font-size:14px; color:var(--text); background:transparent; }
+.no-res { text-align:center; padding:32px; color:var(--text-soft); font-size:14px; font-weight:600; }
+
+/* ── SECTION ── */
+.sec { background:var(--surface); border-radius:var(--radius); margin-bottom:12px; border:1.5px solid var(--border); overflow:hidden; box-shadow:var(--shadow); transition:var(--transition); }
+.sec:hover { box-shadow:var(--shadow-md); }
+.sec-hdr { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; user-select:none; transition:background var(--transition); }
+.sec-hdr:active { background:var(--bg); }
+.sec-icon { width:42px; height:42px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--gold-light),#fff9ed); border:1.5px solid #e8c97a; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.sec-title { font-family:var(--font-head); font-weight:800; font-size:15px; color:var(--text); flex:1; }
+.sec-count { font-size:11px; color:var(--text-soft); margin-top:1px; }
+.sec-arrow { color:var(--text-soft); font-size:18px; transition:transform var(--transition); }
+.sec.open .sec-arrow { transform:rotate(90deg); }
+.sec-body { max-height:0; overflow:hidden; transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-top:0px solid var(--border); }
+.sec.open .sec-body { max-height:50000px; border-top:1px solid var(--border); }
+
+/* ── TOPIC ── */
+.topic { border-bottom:1px solid var(--border); }
+.topic:last-child { border-bottom:none; }
+.topic-hdr { display:flex; align-items:center; gap:10px; padding:13px 16px; cursor:pointer; background:#fff; transition:background var(--transition); }
+.topic-hdr:active { background:var(--bg); }
+.topic-ico { font-size:20px; flex-shrink:0; }
+.topic-name { font-weight:600; font-size:14px; flex:1; color:var(--text); }
+.topic-arr { font-size:14px; color:var(--text-soft); transition:transform var(--transition); }
+.topic.open .topic-arr { transform:rotate(90deg); }
+.topic-body { max-height:0; overflow:hidden; padding:0 16px; background:#fafbfc; transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s; }
+.topic.open .topic-body { max-height:50000px; padding:0 16px 16px; }
+
+/* ── CONTENT PANELS ── */
+.panel { background:#fff; border-radius:var(--radius-sm); padding:14px; border:1px solid var(--border); margin-bottom:10px; margin-top:10px; box-shadow:0 1px 4px rgba(0,0,0,0.03); }
+.panel h4 { font-family:var(--font-head); font-size:13px; font-weight:800; color:var(--accent); margin-bottom:8px; border-right:3px solid var(--gold); padding-right:10px; }
+.panel p { font-size:13px; line-height:1.85; color:var(--text); }
+.panel ul { list-style:none; padding:0; }
+.panel ul li { font-size:13px; line-height:1.85; padding:3px 0; padding-right:18px; position:relative; color:var(--text); }
+.panel ul li::before { content:’–’; position:absolute; right:0; color:var(--gold); font-weight:700; }
+
+/* ── CALLOUT BOXES ── */
+.note { border-radius:var(--radius-sm); padding:12px 14px; font-size:13px; line-height:1.7; font-weight:600; margin-top:8px; border-right:3px solid; }
+.note.info { background:var(--accent-light); color:#1a3352; border-color:var(--accent); }
+.note.warn { background:var(--red-light); color:#7f1d1d; border-color:var(--red); }
+.note.ok { background:var(--green-light); color:#064e3b; border-color:var(--green); }
+.note.tip { background:#fffbeb; color:#78350f; border-color:#d4a843; }
+
+.more-link { display:inline-block; margin-top:10px; font-size:12px; font-weight:700; color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(184,134,11,0.3); padding-bottom:1px; transition:var(--transition); }
+.more-link:hover { border-bottom-color:var(--gold); }
+
+/* ── SHARE BUTTON ── */
+.share-btn { display:inline-flex; align-items:center; gap:5px; margin-top:8px; margin-right:8px; font-size:11px; font-weight:700; color:var(--green); background:var(--green-light); border:1px solid rgba(26,122,74,0.2); border-radius:20px; padding:5px 12px; cursor:pointer; transition:var(--transition); text-decoration:none; }
+.share-btn:active { transform:scale(0.95); }
+
+/* ── DOCTOR ── */
+.doc-card { background:linear-gradient(135deg,var(--accent) 0%,#1a3f5c 50%,var(--accent-2) 100%); border-radius:var(--radius); padding:24px; color:#fff; margin-bottom:14px; text-align:center; position:relative; overflow:hidden; box-shadow:var(--shadow-lg); }
+.doc-card::before { content:’’; position:absolute; top:-50%; left:-30%; width:250px; height:250px; background:radial-gradient(circle,rgba(212,168,67,0.08),transparent 70%); }
+.doc-logo { width:82px; height:82px; background:#fff; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,0.2); position:relative; }
+.doc-logo img { width:100%; height:100%; object-fit:cover; }
+.doc-name { font-family:var(--font-head); font-size:19px; font-weight:900; margin-bottom:4px; }
+.doc-title { font-size:12px; opacity:0.85; line-height:1.7; }
+.doc-tags { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:14px; }
+.doc-tag { background:rgba(255,255,255,0.15); backdrop-filter:blur(4px); border-radius:20px; padding:5px 12px; font-size:11px; font-weight:700; border:1px solid rgba(255,255,255,0.1); }
+
+/* ── INFO CARD ── */
+.icard { background:var(--surface); border-radius:var(--radius); padding:16px; margin-bottom:12px; border:1.5px solid var(--border); box-shadow:var(--shadow); }
+.icard-title { font-family:var(--font-head); font-weight:800; font-size:14px; color:var(--text); margin-bottom:12px; }
+.irow { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.irow:last-child { border-bottom:none; }
+.irow-label { font-weight:600; color:var(--text); }
+.irow-val { color:var(--gold); font-weight:700; }
+
+/* ── CONTACT ── */
+.crow { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
+.crow:last-child { border-bottom:none; }
+.crow-lbl { font-size:11px; color:var(--text-soft); }
+.crow-num { font-size:13px; font-weight:700; color:var(--text); direction:ltr; text-align:right; }
+.cbtn { background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; padding:8px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; flex-shrink:0; transition:var(--transition); box-shadow:0 2px 8px rgba(26,51,82,0.15); }
+.cbtn:active { transform:scale(0.95); }
+.cbtn.grn { background:linear-gradient(135deg,var(--green),#22955a); box-shadow:0 2px 8px rgba(26,122,74,0.2); }
+.cbtn.wide { display:block; text-align:center; padding:14px; font-size:14px; font-family:var(--font-head); }
+
+/* ── FORM ── */
+.acard { background:var(--surface); border-radius:var(--radius); padding:18px; margin-bottom:12px; border:1.5px solid var(--border); box-shadow:var(--shadow); }
+.form-title { font-family:var(--font-head); font-weight:800; font-size:14px; color:var(--text); margin-bottom:14px; }
+.fg { margin-bottom:12px; }
+.fl { font-size:12px; font-weight:600; color:var(--text-soft); margin-bottom:5px; display:block; }
+.fi, .fs, .fta { width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; font-size:14px; font-family:var(--font-body); color:var(--text); background:var(--bg); outline:none; -webkit-appearance:none; transition:var(--transition); }
+.fi:focus, .fs:focus, .fta:focus { border-color:var(--gold); background:#fff; box-shadow:0 0 0 3px rgba(184,134,11,0.08); }
+.fta { min-height:70px; resize:none; }
+.sbtn { width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border:none; border-radius:var(--radius-sm); padding:14px; font-size:14px; font-weight:700; font-family:var(--font-head); cursor:pointer; margin-top:4px; box-shadow:var(--shadow-md); transition:var(--transition); }
+.sbtn:active { transform:scale(0.98); }
+.smsg { display:none; text-align:center; padding:20px; font-size:14px; font-weight:700; color:var(--green); line-height:1.8; }
+.smsg.show { display:block; animation: slideUp 0.5s ease; }
+
+/* ── MEDICINES ── */
+.med-list { list-style:none; }
+.med-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border); }
+.med-item:last-child { border-bottom:none; }
+.med-ico { font-size:22px; flex-shrink:0; }
+.med-name { font-weight:700; font-size:13px; color:var(--text); }
+.med-desc { font-size:12px; color:var(--text-soft); margin-top:3px; line-height:1.65; }
+
+/* ── SCROLL TO TOP ── */
+.scroll-top { position:fixed; bottom:80px; left:16px; width:42px; height:42px; border-radius:50%; background:rgba(26,51,82,0.85); backdrop-filter:blur(8px); color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; z-index:90; opacity:0; transform:translateY(10px); transition:var(--transition); box-shadow:var(--shadow-md); border:none; }
+.scroll-top.show { opacity:1; transform:translateY(0); }
+.scroll-top:active { transform:scale(0.9); }
+
+/* ── DARK MODE ── */
+.dark-toggle { background:rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer; transition:var(--transition); margin-right:auto; flex-shrink:0; }
+.dark-toggle:active { background:rgba(255,255,255,0.25); }
+
+body.dark { --bg:#0f1419; --surface:#1a2332; --text:#e8ecf0; --text-soft:#8899aa; --border:#2a3a4a; --accent-light:#1a2a3a; --gold-light:#1a1a10; --red-light:#2a1515; --green-light:#0a2a1a; }
+body.dark .topic-hdr { background:var(--surface); }
+body.dark .topic-body { background:#141c28; }
+body.dark .panel { background:var(--surface); border-color:var(--border); }
+body.dark .bnav { background:rgba(15,20,25,0.95); }
+body.dark .hdr { background:linear-gradient(135deg,#0a1520,#152030); }
+body.dark .emg { background:linear-gradient(135deg,#2a1515,#1f1010); border-color:#5a2020; }
+body.dark .emg ul li { border-bottom-color:#3a2020; }
+body.dark .srch { background:var(--surface); }
+
+.pf { text-align:center; font-size:11px; color:var(--text-soft); margin-top:12px; padding:8px; }
+
+/* ── SOCIAL FOOTER ── */
+.social-footer { display:flex; justify-content:center; gap:12px; margin-top:8px; padding:8px; }
+.social-link { width:36px; height:36px; border-radius:50%; background:var(--accent-light); display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:16px; transition:var(--transition); }
+.social-link:active { transform:scale(0.9); }
+
+/* ── PROGRESS BAR ── */
+.progress-bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-2)); z-index:200; width:0%; transition:width 0.15s linear; }
+
+/* ── SEARCH HIGHLIGHT ── */
+.highlight { background:rgba(184,134,11,0.25); border-radius:3px; padding:0 2px; }
+
+/* ── TIP ANIMATION ── */
+.tip-text { opacity:0; animation: tipFade 1s 1.8s both; }
+@keyframes tipFade { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:translateX(0); } }
+
+/* ── BACK BUTTON ── */
+.back-btn { display:none; background:rgba(255,255,255,0.15); border:none; color:#fff; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; font-size:18px; cursor:pointer; transition:var(--transition); flex-shrink:0; }
+.back-btn:active { background:rgba(255,255,255,0.25); }
+.back-btn.show { display:flex; }
+</style>
+
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- SCROLL TO TOP -->
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<div class="hdr">
+  <button class="back-btn" id="backBtn" onclick="switchTab('home')">→</button>
+  <div class="hdr-logo"><img src="data:image/jpeg;base64,/9j/4QMmRXhpZgAATU0AKgAAAAgACQESAAMAAAABAAEAAAEaAAUAAAABAAAAegEbAAUAAAABAAAAggEoAAMAAAABAAIAAAExAAIAAAAIAAAAigEyAAIAAAAUAAAAkgE7AAIAAAAIAAAApgITAAMAAAABAAEAAIdpAAQAAAABAAAArgAAAAAAAABIAAAAAQAAAEgAAAABUGljc2FydAAyMDI2OjAyOjIxIDE4OjUyOjE1AG1hbGJhcnIAAAmQAAAHAAAABDAyMjGQAwACAAAAFAAAASCRAQAHAAAABAECAwCgAAAHAAAABDAxMDCgAQADAAAAAQABAACgAgAEAAAAAQAAAjugAwAEAAAAAQAAAWakBgADAAAAAQAAAACkMAACAAAB5wAAATQAAAAAMjAyNjowMjoyMSAxODo1MjoxNQB7InN1YnNvdXJjZSI6ImRvbmVfYnV0dG9uIiwidWlkIjoiQjdGRUYyQUQtNzkwQS00MUZBLUI1NzYtQjUxOUZGMzkwOUFCIiwic291cmNlIjoib3RoZXIiLCJvcmlnaW4iOiJnYWxsZXJ5IiwidHJhbnNwYXJlbmN5X3ZhbHVlIjp7Im1heF9hbHBoYSI6MSwibWluX2FscGhhIjoxLCJvcGFjaXR5OTAiOnsicGVyY2VudGFnZSI6MCwib3BhcXVlX2JvdW5kcyI6eyJ5IjowLCJ3Ijo1NzEsIngiOjAsImgiOjM1OH19LCJvcGFjaXR5MCI6eyJwZXJjZW50YWdlIjowLCJvcGFxdWVfYm91bmRzIjp7InkiOjAsInciOjU3MSwieCI6MCwiaCI6MzU4fX0sIm9wYWNpdHk5OSI6eyJwZXJjZW50YWdlIjowLCJvcGFxdWVfYm91bmRzIjp7InkiOjAsInciOjU3MSwieCI6MCwiaCI6MzU4fX19LCJpc19yZW1peCI6ZmFsc2UsInVzZWRfc291cmNlcyI6IntcInZlcnNpb25cIjoxLFwic291cmNlc1wiOltdfSIsInByZW1pdW1fc291cmNlcyI6W10sImZ0ZV9zb3VyY2VzIjpbXX0AAAAA/+EKcWh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8APD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iWE1QIENvcmUgNi4wLjAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bXA6Q3JlYXRvclRvb2w9IlBpY3NhcnQiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTIxVDE4OjUyOjE1IiBwaG90b3Nob3A6RGF0ZUNyZWF0ZWQ9IjIwMjYtMDItMjFUMTg6NTI6MTUiPiA8ZGM6Y3JlYXRvcj4gPHJkZjpTZXE+IDxyZGY6bGk+bWFsYmFycjwvcmRmOmxpPiA8L3JkZjpTZXE+IDwvZGM6Y3JlYXRvcj4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPD94cGFja2V0IGVuZD0idyI/PgD/4gIoSUNDX1BST0ZJTEUAAQEAAAIYYXBwbAQAAABtbnRyUkdCIFhZWiAH5gABAAEAAAAAAABhY3NwQVBQTAAAAABBUFBMAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWFwcGwAAAAAAAAAAAAAAAAA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" alt="AlBar"></div>
+  <div class="hdr-title">AlBar Health</div>
+  <button class="dark-toggle" id="darkToggle" onclick="toggleDark()">🌙</button>
+</div>
+
+<div class="tab active" id="tab-home"><div class="pc">
+  <div class="hero">
+    <div class="hero-title">مرحباً بك في عيادة البار 👋</div>
+    <div class="hero-sub">إرشادات طبية متخصصة في أمراض الأنف والأذن والحنجرة. ابحث أو اختر من القائمة.</div>
+  </div>
+  <div class="tip-box">
+    <span style="font-size:22px;flex-shrink:0">💡</span>
+    <div><div class="tip-label">نصيحة اليوم</div><div class="tip-text" id="dailyTip">...</div></div>
+  </div>
+  <div class="qgrid">
+    <div class="qcard" onclick="switchTab('instructions')"><div class="qi">📋</div><div class="qt">الإرشادات</div><div class="qs">تعليمات مفصّلة</div></div>
+    <div class="qcard" onclick="switchTab('contact')"><div class="qi">📞</div><div class="qt">التواصل</div><div class="qs">مواعيد وأرقام</div></div>
+    <div class="qcard" onclick="switchTab('doctor')"><div class="qi">👨‍⚕️</div><div class="qt">طبيبك</div><div class="qs">تعرف على الدكتور</div></div>
+    <div class="qcard" onclick="openDoctorsApp()"><div class="qi">🩺</div><div class="qt">للأطباء والطلبة</div><div class="qs">موارد تعليمية</div></div>
+  </div>
+  <div class="emg">
+    <div class="emg-title">راجع الطوارئ فوراً إذا كان لديك</div>
+    <ul>
+      <li>حرارة أكثر من 39°م لا تستجيب للدواء</li>
+      <li>رعاف مستمر أكثر من فنجان شاي في 30 دقيقة</li>
+      <li>صعوبة تنفس شديدة أو شعور بانسداد الهواء</li>
+      <li>شلل مفاجئ في الوجه أو الأطراف</li>
+      <li>تغيير مفاجئ في البصر أو الحالة العقلية</li>
+    </ul>
+    <a class="emg-call" href="tel:997">📞 الهلال الأحمر: 997</a>
+  </div>
+  <div class="social-footer">
+      <a class="social-link" href="https://twitter.com/MohammadHAlbar" target="_blank">𝕏</a>
+      <a class="social-link" href="https://wa.me/message/6TYAFZZ7B3TZO1?src=qr" target="_blank">💬</a>
+    </div>
+    <div class="pf">د. محمد حسين البار | Dr. Mohammad H. Al-Bar</div>
+</div></div>
+
+<div class="tab" id="tab-instructions"><div class="pc">
+  <div class="srch">
+    <span style="font-size:18px;color:var(--text-soft)">🔍</span>
+    <input type="text" placeholder="ابحث عن إرشاد..." oninput="filterTopics(this.value)">
+  </div>
+  <div id="topicsContainer">
+
+  <div class="sec" id="sec-nose">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">👃</div>
+      <div><div class="sec-title">الأنف والجيوب الأنفية</div><div class="sec-count">10 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="الغسول الأنفي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💧</span><span class="topic-name">الغسول الأنفي</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو؟</h4><p>غسيل الأنف بمحلول ملحي يُنظّفه من المخاط والجراثيم. الأنف ينتج لتراً إلى لترين من المخاط يومياً دون أن نشعر — الغسول يساعد على تنظيفه وترطيبه.</p></div>
+          <div class="panel"><h4>الطريقة</h4><ul><li>انحنِ فوق الحوض برأس مائل</li><li>أدخل رأس الإبريق في فتحة الأنف العلوية</li><li>اسكب المحلول حتى يخرج من الفتحة الأخرى</li><li>كرر من الجهة الأخرى، ثم انفخ برفق</li></ul></div>
+          <div class="note ok">مرتان يومياً على الأقل — كلما زاد كان أفضل، خاصةً بعد العمليات.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="بخاخ الأنف الكورتيزون">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💨</span><span class="topic-name">بخاخ الأنف (الكورتيزون)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الطريقة الصحيحة</h4><ul><li>ابقَ رأسك مرفوعاً أو منحنياً للأمام قليلاً</li><li>أغلق فتحة الأنف الأخرى برفق</li><li>ضع البخاخ نحو جدار الأنف الداخلي — وليس للحاجز</li><li>استخدم اليد اليمنى للجهة اليسرى والعكس</li><li>بختان في كل جهة، تنفس برفق أثناء البخ</li><li>تنفس من الفم بعد كل بخة لضمان بقاء الدواء</li></ul></div>
+          <div class="note info">يحتاج 2-4 أسابيع للتأثير الكامل. آمن للاستخدام المنتظم.</div>
+          <div class="note warn">لا توقفه فجأة بدون استشارة طبيبك.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="التهاب الجيوب الأنفية">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🤧</span><span class="topic-name">التهاب الجيوب الأنفية</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو؟</h4><p>التهاب الأغشية المبطّنة للجيوب. 1 من كل 8 بالغين يُصاب به سنوياً. 98% من الحالات الحادة بسبب فيروسات لا بكتيريا.</p></div>
+          <div class="panel"><h4>الأعراض</h4><ul><li>ألم وضغط في الوجه والجبهة والخدين</li><li>انسداد الأنف وإفرازات صفراء أو خضراء</li><li>فقدان حاسة الشم، صداع، حرارة</li></ul></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>فيروسي: غسول + بخاخ + مسكنات — بدون مضاد حيوي</li><li>بكتيري: مضاد حيوي + غسول</li><li>مزمن (أكثر من 12 أسبوعاً): بخاخ كورتيزون + غسول منتظم</li></ul></div>
+          <div class="note tip">إذا استمرت نزلة البرد أكثر من 10 أيام أو تحسّنت ثم عادت — راجع طبيبك.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/sinusitis/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="انحراف الحاجز الأنفي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">〰️</span><span class="topic-name">انحراف الحاجز الأنفي</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو؟</h4><p>الجدار الغضروفي الفاصل بين فتحتي الأنف. 80% من الناس لديهم انحراف ما — معظمهم بدون أعراض.</p></div>
+          <div class="panel"><h4>الأعراض</h4><ul><li>صعوبة التنفس من جانب واحد</li><li>شخير أو توقف تنفس ليلاً</li><li>تكرار التهابات الجيوب ونزيف الأنف</li></ul></div>
+          <div class="panel"><h4>العملية (رأب الحاجز)</h4><ul><li>من خلال فتحتي الأنف — بدون كدمات خارجية</li><li>1-2 ساعة تحت التخدير العام</li><li>يوم واحد ثم خروج في الغالب</li><li>المضاعفات نادرة: نزيف، ثقب الحاجز، تسرب السائل الشوكي</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/deviated-septum/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="تضخم القرنيات التوربينات">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🌿</span><span class="topic-name">تضخم القرنيات (التوربينات)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هي؟</h4><p>هياكل عظمية داخل الأنف تصفّي الهواء وتدفّئه وترطّبه. تنتفخ مع الحساسية والالتهابات وعند الاستلقاء.</p></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>بخاخ كورتيزون أنفي — الخط الأول</li><li>غسول الأنف المنتظم</li><li>علاج الحساسية إن كانت السبب</li><li>تجنّب أوترفين أكثر من 3 أيام — يسبب تورماً وإدماناً</li><li>تصغير القرنيات جراحياً عند الفشل الدوائي</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/turbinate-hypertrophy/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="فقدان حاسة الشم ضعف الشم تمارين">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">👃</span><span class="topic-name">ضعف أو فقدان حاسة الشم</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الأسباب</h4><ul><li>انسداد الأنف — الأشيع (التهاب جيوب مزمن، لحمية)</li><li>التهابات فيروسية (كوفيد وغيرها)</li><li>انحراف الحاجز، التقدم في السن</li><li>التدخين يسرّع الفقدان</li></ul></div>
+          <div class="panel"><h4>تمارين إعادة الشم</h4><ul><li>شمّ 4 روائح يومياً: ورد، ليمون، قرنفل، قهوة</li><li>ركّز على كل رائحة 20 ثانية</li><li>كرر مرتين يومياً لمدة 3-6 أشهر</li></ul></div>
+          <div class="note ok">الصبر والمثابرة مفتاح النجاح — بعض الحالات تتحسن بعد أشهر.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="الرعاف نزيف الأنف">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🩸</span><span class="topic-name">الرعاف (نزيف الأنف)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ماذا تفعل — الخطوات</h4><ul><li>حافظ على هدوئك — التوتر يزيد النزيف</li><li>اجلس، ابقَ رأسك مرفوعاً، انحنِ للأمام قليلاً</li><li>رشّ أوترفين أو أوكسي ميتازولين</li><li>اضغط على الجزء اللين من الأنف 10-15 دقيقة متواصلة بلا فك</li><li>إذا استمر: توجه للمستشفى</li></ul></div>
+          <div class="panel"><h4>الوقاية</h4><ul><li>ضع فازلين داخل الأنف لمنع الجفاف</li><li>غسول ملحي منتظم لترطيب الغشاء</li><li>مرطب هواء في الغرفة</li><li>توقف عن التدخين</li></ul></div>
+          <div class="note warn">لا تمِل رأسك للخلف. راجع الطوارئ إذا لم يتوقف بعد 30 دقيقة.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/nosebleeds/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="المنظار الأنفي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🔭</span><span class="topic-name">المنظار الأنفي</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو؟</h4><p>أنبوب رفيع مرن بكاميرا وضوء يُدخَل في الأنف لفحص الأنف والجيوب والحنجرة.</p></div>
+          <div class="panel"><h4>ماذا تتوقع؟</h4><ul><li>رشّ مخدر موضعي قبل الفحص</li><li>5-10 دقائق — ضغط خفيف لا ألم حاد</li><li>تعود لنشاطك فوراً بعد الانتهاء</li></ul></div>
+          <div class="note info">آمن جداً. مضاعفات نادرة جداً.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="البلغم مخاط خلف الأنف">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🫁</span><span class="topic-name">البلغم (مخاط خلف الأنف)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو؟</h4><p>الأنف ينتج 1-2 لتر مخاط يومياً يُبتلع دون أن نشعر. عندما يتراكم ونحسّه في الحلق — هذا هو البلغم الخلفي.</p></div>
+          <div class="panel"><h4>الأسباب الشائعة</h4><ul><li>حساسية الأنف — الأشيع</li><li>الارتجاع الحنجري (LPR)</li><li>التهابات الجيوب، الجفاف</li></ul></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>غسول الأنفي المنتظم — الأفضل</li><li>اشرب ليترين ماء يومياً</li><li>علاج الحساسية أو الارتجاع إن كانا السبب</li></ul></div>
+          <div class="note tip">في الأطفال: إفرازات سميكة من جانب واحد قد تدل على جسم غريب في الأنف.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="صداع الجيوب الأنفية الصداع النصفي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🤕</span><span class="topic-name">صداع الجيوب الأنفية</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>حقيقة مهمة</h4><p>أكثر من 80% ممن يظنون أن صداعهم من الجيوب لديهم في الواقع صداع نصفي أو صداع توتر.</p></div>
+          <div class="panel"><h4>متى يكون من الجيوب؟</h4><ul><li>يزداد عند الانحناء للأمام</li><li>مصحوب بإفرازات ملوّنة صفراء أو خضراء</li><li>يرافقه انسداد أنف وحرارة</li></ul></div>
+          <div class="note warn">لا تعالج الصداع النصفي بمضادات حيوية — لن تجدي.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-ear">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">👂</div>
+      <div><div class="sec-title">الأذن والتوازن</div><div class="sec-count">5 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="قطرات الأذن">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💧</span><span class="topic-name">قطرات الأذن</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الطريقة الصحيحة</h4><ul><li>سخّن الزجاجة بين يديك دقيقة لتقليل الدوخة</li><li>امل رأسك جانباً حتى تكون الأذن للأعلى</li><li>اسحب الأذن للأعلى والخلف لتوسيع القناة</li><li>اقطر العدد المحدد وابقَ ممداً 2-3 دقائق</li></ul></div>
+          <div class="note warn">لا تستخدم إذا كانت الطبلة مثقوبة أو عندك أنبوب تهوية — إلا بتوجيه طبيبك.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="الدوخة الحميدة الوضعية BPPV">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">😵‍💫</span><span class="topic-name">الدوخة الحميدة الوضعية (BPPV)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هي؟</h4><p>أشيع أسباب الدوخة. بلورات صغيرة في الأذن الداخلية تتحرك للمكان الخطأ فتسبب دواراً عند تغيير وضع الرأس.</p></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>مناورة Epley من قِبل الطبيب — تحل المشكلة في جلسة واحدة غالباً</li><li>بعد المناورة: تجنب الاستلقاء المفاجئ 24 ساعة</li><li>نم على جانبك السليم لليلتين</li><li>قد تتكرر — المناورة تعالجها مجدداً</li></ul></div>
+          <div class="note ok">ليست خطيرة. معظم الحالات تتحسن سريعاً مع العلاج.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/benign-paroxysmal-positional-vertigo-bppv/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="تمارين التوازن المنزلية">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🤸</span><span class="topic-name">تمارين التوازن المنزلية</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>تعليمات</h4><ul><li>افعلها بجوار جدار أو مع شخص مساعد</li><li>ابدأ ببطء وزد تدريجياً</li><li>الدوخة الخفيفة أثناء التمرين طبيعية</li><li>توقف إذا اشتدت الدوخة بشكل كبير</li></ul></div>
+          <div class="note info">استمر حتى مع الدوخة الخفيفة — هذا مؤشر على استجابة الجهاز للعلاج.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="شمع الأذن الصملاخ">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">👂</span><span class="topic-name">شمع الأذن (الصملاخ)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>هل هو طبيعي؟</h4><p>نعم. الأذن تنتج شمعاً لحمايتها. يتحرك تلقائياً للخارج بمساعدة المضغ.</p></div>
+          <div class="panel"><h4>ما تفعله وما لا تفعله</h4><ul><li>لا — Q-tips تدفع الشمع للداخل وتؤذي الطبلة</li><li>لا — مسواك الأذن الشمعي غير فعّال وخطر</li><li>نعم — قطرات تليين: زيت زيتون أو بيروكسيد الهيدروجين</li><li>نعم — غسيل الأذن عند الطبيب إذا كان مسداً</li></ul></div>
+          <div class="note warn">لا تغسل بالماء إذا كانت الطبلة مثقوبة.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/earwax-and-care/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="شلل عصب الوجه بيل Bell Palsy">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">😶</span><span class="topic-name">شلل عصب الوجه (Bell's Palsy)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو؟</h4><p>العصب السابع يتحكم في عضلات الوجه والأذن والدموع وبعض التذوق. الشلل غالباً مؤقت مع علاج مبكر.</p></div>
+          <div class="panel"><h4>التعليمات المهمة</h4><ul><li>ابدأ الكورتيزون خلال 72 ساعة من البداية</li><li>قطرات دموع صناعية نهاراً لحماية العين</li><li>مرهم وشريط طبي على العين ليلاً</li><li>تمارين وجه يومية تسرّع الشفاء</li><li>70% يتعافون كاملاً خلال 6 أشهر</li></ul></div>
+          <div class="note warn">شلل مفاجئ + ألم شديد بالأذن + بثور = راجع الطوارئ فوراً.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/bells-palsy/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-voice">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">🎤</div>
+      <div><div class="sec-title">الحنجرة والحبال الصوتية</div><div class="sec-count">5 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="البحة تغير الصوت صوتي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🗣️</span><span class="topic-name">البحة وتغير الصوت</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما يسبب البحة؟</h4><p>أي مشكلة تمنع اهتزاز الحبال الصوتية — كالالتهاب، الارتجاع، الإجهاد، الأورام الحميدة، أو الشلل.</p></div>
+          <div class="panel"><h4>حماية صوتك</h4><ul><li>تجنب الصراخ والتحدث بصوت عالٍ</li><li>تجنب الهمس — يُجهد الحبال مثل الصراخ</li><li>تحدث في بداية النفس وليس آخره</li><li>ابقَ حلقك رطباً — ليترين ماء يومياً</li><li>تجنب الكافيين والتدخين</li><li>استخدم ميكروفوناً إذا كان عملك يعتمد على الصوت</li></ul></div>
+          <div class="note warn">بحة تستمر أكثر من 3 أسابيع بدون سبب = تقييم طبي عاجل.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/hoarseness/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="التهاب اللوزتين">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🦠</span><span class="topic-name">التهاب اللوزتين</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الأعراض</h4><ul><li>احمرار مع بقع بيضاء أو صفراء</li><li>صعوبة البلع وألم حلق شديد</li><li>حرارة وتضخم غدد الرقبة</li></ul></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>بكتيري: مضاد حيوي — أكمل الجرعة كاملاً</li><li>فيروسي: مسكنات وسوائل وراحة</li><li>الاستئصال عند التكرار المتكرر</li></ul></div>
+          <div class="note tip">معظم التهابات الحلق فيروسية — لا تأخذ مضاداً حيوياً بدون تحديد النوع.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/tonsils-and-adenoids/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="صعوبة البلع">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🍵</span><span class="topic-name">صعوبة البلع</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الأسباب الشائعة</h4><ul><li>الارتجاع الحنجري (LPR) — الأشيع</li><li>التهاب الحلق، جفاف الحلق</li><li>ضعف عضلات الحلق والمريء</li><li>أمراض عصبية (باركنسون، السكتة)</li></ul></div>
+          <div class="panel"><h4>نصائح مساعدة</h4><ul><li>تناول لقم صغيرة وامضغ جيداً</li><li>الانحناء للأمام أثناء البلع يساعد</li><li>اشرب الماء أثناء الأكل</li></ul></div>
+          <div class="note warn">صعوبة بلع مستمرة أو متصاعدة = تقييم طبي عاجل.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/swallowing-difficulty-dysphagia/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="جفاف الفم والحلق">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🫦</span><span class="topic-name">جفاف الفم والحلق</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>كيف أخففه؟</h4><ul><li>اشرب ماءً بانتظام طوال اليوم</li><li>امضغ علكة خالية من السكر</li><li>بخاخ ترطيب الفم من الصيدلية</li><li>تجنب مغسول الفم الكحولي</li><li>مرطب هواء في غرفة النوم</li><li>علاج انسداد الأنف — التنفس بالفم يجفف الفم</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/dry-mouth/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="شلل الحبل الصوتي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🔇</span><span class="topic-name">شلل الحبل الصوتي</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما يحدث؟</h4><p>إصابة الأعصاب المغذّية للحبال الصوتية تسبب شللاً يؤثر على الصوت والبلع والتنفس بدرجات متفاوتة.</p></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>علاج صوتي مع معالج متخصص</li><li>حقن الحبل الصوتي لتحسين الصوت</li><li>جراحة في بعض الحالات</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/vocal-fold-paralysis/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-sleep">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">😴</div>
+      <div><div class="sec-title">النوم والشخير</div><div class="sec-count">3 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="الشخير انقطاع النفس OSA">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">😤</span><span class="topic-name">الشخير وانقطاع التنفس (OSA)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هو OSA؟</h4><p>نصف البالغين يشخرون. الشخير قد يدل على انقطاع التنفس — يقلل الأكسجين ويجهد القلب ويزيد خطر ارتفاع الضغط والسكتة.</p></div>
+          <div class="panel"><h4>الأعراض</h4><ul><li>شخير بصوت عالٍ</li><li>توقف التنفس أثناء النوم يلاحظه الشريك</li><li>الاستيقاظ مختنقاً أو جافاً الفم</li><li>نعاس شديد نهاراً وصداع صباحي</li><li>التهيّج وصعوبة التركيز</li></ul></div>
+          <div class="panel"><h4>خيارات العلاج</h4><ul><li>إنقاص الوزن — فعّال جداً</li><li>جهاز CPAP — الأول والأفضل</li><li>أجهزة فموية تقدّم الفك</li><li>تصحيح انسداد الأنف جراحياً</li><li>استئصال اللوزتين للأطفال</li></ul></div>
+          <div class="note warn">OSA غير المعالج يزيد خطر أمراض القلب والحوادث.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/obstructive-sleep-apnea/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="نصائح نوم أفضل">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🌙</span><span class="topic-name">نصائح لنوم أفضل</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>14 نصيحة</h4><ul><li>اذهب للسرير في نفس الوقت كل ليلة</li><li>روتين قبل النوم: قراءة، صلاة، استرخاء</li><li>تجنب الشاشات 30-60 دقيقة قبل النوم</li><li>غرفة باردة، هادئة، مظلمة</li><li>تجنب الكافيين بعد الظهر</li><li>3 ساعات بين آخر وجبة والنوم</li><li>مارس الرياضة خلال اليوم</li><li>لا قيلولة أكثر من 20 دقيقة</li></ul></div>
+        </div>
+      </div>
+      <div class="topic" data-title="أسباب الشخير انقطاع النفس">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🧬</span><span class="topic-name">أسباب الشخير وانقطاع التنفس</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>العوامل</h4><ul><li>السمنة وزيادة الوزن — الأهم</li><li>تضخم اللوزتين والناميات</li><li>انسداد الأنف: الحاجز، القرنيات، الحساسية</li><li>ضعف عضلات الحلق واللسان</li><li>التدخين والكحول، التقدم في السن</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-reflux">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">🔥</div>
+      <div><div class="sec-title">الارتجاع المعدي</div><div class="sec-count">3 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="الارتجاع GERD LPR الحنجري المريئي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🫁</span><span class="topic-name">الارتجاع — GERD و LPR</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما يحدث؟</h4><p>محتويات المعدة الحمضية تتدفق للأعلى. إلى المريء: GERD. إلى الحنجرة: LPR — وقد يحدث بدون حرقة معدة.</p></div>
+          <div class="panel"><h4>أعراض LPR</h4><ul><li>تنظيف الحلق المتكرر والنحنحة</li><li>بحة أو تغير الصوت</li><li>سعال مزمن، بلغم متكرر</li><li>إحساس بشيء عالق في الحلق</li><li>طعم مر، تجشؤ</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/laryngopharyngeal-reflux-lpr/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="كيف اخفف الارتجاع نمط الحياة">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🥗</span><span class="topic-name">كيف أخفف الارتجاع؟</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>تعديلات الغذاء</h4><ul><li>لا أكل 2-3 ساعات قبل النوم</li><li>3-4 وجبات صغيرة بدل وجبتين كبيرتين</li><li>قلّل: القهوة، المشروبات الغازية، الشوكولاتة، النعناع، الطماطم، الحامض، الدهني، الحار</li></ul></div>
+          <div class="panel"><h4>تعديلات نمط الحياة</h4><ul><li>ارفع رأس السرير 15-20 سم</li><li>لا تنم على جانبك الأيمن — الأيسر أفضل</li><li>إنقاص الوزن يقلل الضغط</li><li>ملابس فضفاضة حول البطن</li><li>توقف عن التدخين والكحول</li></ul></div>
+          <div class="note ok">تغييرات نمط الحياة وحدها قد تحسّن الأعراض كثيراً قبل الأدوية.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="علاج الارتجاع أدوية">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💊</span><span class="topic-name">علاج الارتجاع بالأدوية</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الأدوية</h4><ul><li>مثبطات ضخ البروتون (PPI) — قبل الأكل بـ30 دقيقة</li><li>مضادات الحموضة للتخفيف السريع</li><li>أدوية القرحة (H2 blockers)</li></ul></div>
+          <div class="note warn">لا توقف أدوية الارتجاع فجأة — يحدث ارتداد.</div>
+          <div class="note info">علاج الارتجاع الحنجري يستغرق أشهراً — الالتزام مهم.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-surgery">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">🏥</div>
+      <div><div class="sec-title">تعليمات العمليات</div><div class="sec-count">4 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="ما قبل العملية تحضير إجراءات 110">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">📋</span><span class="topic-name">إجراءات ما قبل العملية</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>التحاليل المطلوبة</h4><ul><li>تحاليل دم (صورة دم، تخثر)</li><li>أشعة وتخطيط قلب للأعمار فوق 40</li><li>تحليل حمل للنساء</li><li>تحاليل خاصة حسب أمراضك المزمنة</li></ul></div>
+          <div class="panel"><h4>تعليمات الأدوية</h4><ul><li>مسيّلات الدم: أوقفها بعد استشارة طبيبك — قبل أسبوعين</li><li>أدوية السكر: أوقفها صباح العملية فقط</li><li>أدوية الضغط: تناولها صباح العملية مع رشفة ماء</li><li>أدوية الصرع: تناولها صباح العملية</li></ul></div>
+          <div class="panel"><h4>الصيام والتحضير</h4><ul><li>لا أكل أو شرب بعد منتصف الليل (8 ساعات)</li><li>رشفات ماء فقط مع الأدوية حتى الساعة 5 صباحاً</li><li>استحم، لا مستحضرات تجميل، لا مجوهرات</li><li>توقف عن التدخين أسبوعين قبل العملية</li></ul></div>
+          <div class="panel"><h4>ماذا تحضر؟</h4><ul><li>النظارات، أطقم الأسنان، أجهزة السمع، جهاز CPAP</li><li>هوية وبطاقة تأمين، هاتف وشاحن</li><li>تقارير وأشعة سابقة</li><li>اترك المجوهرات والنقد في المنزل</li></ul></div>
+          <div class="note tip">حدّد شخصاً مرافقاً يوم العملية — لا يمكنك العودة وحدك بعد التخدير.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="بعد عملية الأنف الجيوب الحاجز قاع الجمجمة 301">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🤕</span><span class="topic-name">بعد عملية الأنف والجيوب وقاع الجمجمة (301)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الحشوة الأنفية</h4><p>تُوضع نادراً (أقل من 5%). إذا وُضعت ستُزال قبل خروجك أو عند أول زيارة.</p></div>
+          <div class="panel"><h4>الدم والإفرازات</h4><ul><li>قطرات دم وقشور وإفرازات — متوقعة وتستمر حتى أسبوع</li><li>غيّر الشاش حسب الحاجة</li><li>نظّف شعر الأنف بـ Q-tip مع هيدروجين بيروكسايد يومياً</li><li>لا تدخل أصابعك داخل الأنف</li></ul></div>
+          <div class="panel"><h4>الألم</h4><ul><li>ألم خفيف إلى متوسط في الأنف والوجه والأسنان والحلق — طبيعي ويتحسن تدريجياً</li><li>خذ المسكنات الموصوفة عند الحاجة</li><li>لا تقد السيارة عند أخذ الكودين</li><li>الغرغرة تخفف ألم الحلق</li></ul></div>
+          <div class="panel"><h4>الغذاء والسوائل</h4><ul><li>استعد للأكل تدريجياً — قد يحدث غثيان</li><li>انتظر 24 ساعة قبل وجباتك المعتادة</li><li>6-8 أكواب سوائل يومياً على الأقل</li><li>تجنب القهوة أسبوعاً، يُمنع التدخين</li></ul></div>
+          <div class="panel"><h4>تجنّب هذه الأشياء</h4><ul><li>نفخ الأنف بشدة — عند العطاس أبقِ فمك مفتوحاً</li><li>الانحناء للأمام لفترات طويلة</li><li>حمل أشياء ثقيلة (أكثر من 4 كجم)</li><li>التمارين الشاقة</li><li>السفر حتى أسبوعين</li><li>الأسبرين ومسيّلات الدم أسبوعاً</li></ul></div>
+          <div class="panel"><h4>الغسول بعد العملية</h4><ul><li>ابدأ بعد 24-48 ساعة من العملية</li><li>مرتان يومياً على الأقل</li><li>يقلل الاحتقان ويسهّل تنظيف الجيوب في الزيارة الأولى</li></ul></div>
+          <div class="panel"><h4>زيارات المتابعة</h4><ul><li>الزيارة الأولى: خلال أسبوعين</li><li>سنُنظّف الجيوب من الدم والقشور</li><li>ستشعر بتحسن كبير في التنفس بعدها</li><li>خذ مسكناً نصف ساعة قبل الزيارة الأولى</li></ul></div>
+          <div class="note warn">راجع الطوارئ فوراً: حرارة فوق 39°م، رعاف مستمر، ألم شديد لا يتحسن، تغيير في البصر أو الحالة العقلية، صعوبة تنفس شديدة.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="بعد عملية اللوزتين والناميات 302">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">😮</span><span class="topic-name">بعد عملية اللوزتين والناميات (302)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>التعافي</h4><ul><li>7-10 أيام في الغالب، قد يصل لأسبوعين</li><li>العودة للمدرسة: بعد القدرة على الأكل والشرب طبيعياً</li><li>لا سفر بالطائرة أسبوعين</li></ul></div>
+          <div class="panel"><h4>الأكل والشرب</h4><ul><li>السوائل أهم شيء — فوراً بعد العملية</li><li>الآيس كريم والأطعمة الباردة مفيدة</li><li>الطعام اللين أفضل في البداية</li><li>كلما أكل أكثر كان الشفاء أسرع</li></ul></div>
+          <div class="panel"><h4>الأدوية</h4><ul><li>بنادول كل 8 ساعات</li><li>إيبوبروفين كل 8 ساعات</li><li>يُعطى كل واحد بالتناوب — كل 4 ساعات أحدهما</li></ul></div>
+          <div class="panel"><h4>ما هو طبيعي؟</h4><ul><li>آثار بيضاء في مكان اللوز — تسقط بعد 5-10 أيام</li><li>رائحة فم مؤقتة</li><li>شخير وتنفس بالفم مؤقت</li><li>حرارة خفيفة يوم أو يومين</li></ul></div>
+          <div class="note warn">نزيف من الفم = اذهب لأقرب طوارئ فوراً.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="بعد عملية الأذن أنابيب التهوية 303">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">👂</span><span class="topic-name">بعد عملية الأذن — أنابيب التهوية (303)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هي؟</h4><p>شق صغير في طبلة الأذن مع أنبوب للتهوية. للأطفال الذين تتكرر لديهم التهابات الأذن أو السوائل المزمنة.</p></div>
+          <div class="panel"><h4>معلومات مهمة</h4><ul><li>تبقى الأنابيب 9-18 شهراً ثم تسقط تلقائياً</li><li>الطبلة تلتئم بعدها</li><li>عودة للمدرسة في اليوم التالي</li></ul></div>
+          <div class="panel"><h4>تعليمات</h4><ul><li>تبقى الأنابيب 9-18 شهراً ثم تسقط تلقائياً</li><li>تجنب دخول الماء للأذن — سدادات أثناء الاستحمام</li><li>لا سباحة بدون حماية الأذن</li><li>إفرازات من الأذن: قطرات فوراً وراجع الطبيب</li></ul></div>
+          <div class="note info">ألم بسيط فقط. معظم الأطفال يعودون لنشاطهم سريعاً.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-postop">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">💊</div>
+      <div><div class="sec-title">أدوية ما بعد العمليات</div><div class="sec-count">2 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="أدوية بعد عملية الأنف 144">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💊</span><span class="topic-name">أدوية بعد عملية الأنف (144)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>القائمة</h4><ul><li>١. SOLPADINE — مسكن، 3 مرات يومياً لأسبوعين</li><li>٢. Tramadol — مسكن قوي، مرتان عند اللزوم</li><li>٣. مرهم Fucidine — داخل الأنف مرتان يومياً</li><li>٤. غسول الأنف — مرتان يومياً على الأقل</li><li>٥. مضاد حيوي — أكمل الجرعة كاملاً</li><li>٦. Otrivin — مرتان يومياً لمدة 5 أيام فقط</li><li>٧. بخاخ الكورتيزون</li><li>٨. مضاد للحموضة</li><li>٩. مضاد للغثيان</li></ul></div>
+          <div class="note warn">أبلغ الطاقم عن أي حساسية قبل صرف الأدوية.</div>
+        </div>
+      </div>
+      <div class="topic" data-title="أدوية بعد عملية اللوزتين 146">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💊</span><span class="topic-name">أدوية بعد عملية اللوزتين (146)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الأدوية</h4><ul><li>بنادول — كل 8 ساعات</li><li>إيبوبروفين — كل 8 ساعات</li><li>يُعطى كل واحد بالتناوب كل 4 ساعات</li></ul></div>
+          <div class="note info">التناوب بين المسكنَين يعطي تغطية مستمرة.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-enthealth">
+    <div class="sec-hdr" onclick="toggleSection(this)">
+      <div class="sec-icon">🌐</div>
+      <div><div class="sec-title">مواضيع أخرى — ENThealth</div><div class="sec-count">6 مواضيع</div></div>
+      <div class="sec-arrow">›</div>
+    </div>
+    <div class="sec-body">
+      <div class="topic" data-title="الحساسية الأنفية التهاب الأنف التحسسي">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🌸</span><span class="topic-name">الحساسية الأنفية</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>ما هي؟</h4><p>استجابة مبالغ فيها من الجهاز المناعي تجاه مواد غير ضارة كحبوب اللقاح والغبار ووبر الحيوانات.</p></div>
+          <div class="panel"><h4>العلاج</h4><ul><li>بخاخ كورتيزون أنفي — الأفضل للمزمن</li><li>مضادات الهيستامين: لوراتادين أقل نعاساً</li><li>غسول الأنفي لإزالة مسببات الحساسية</li><li>حقن إزالة الحساسية للحالات الشديدة</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/allergic-rhinitis-hay-fever/" target="_blank">اقرأ أكثر — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="سرطان الرأس العنق الحنجرة علامات تحذير">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🔴</span><span class="topic-name">سرطانات الرأس والعنق — متى تقلق؟</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>علامات التحذير</h4><ul><li>كتلة في الرقبة أكثر من أسبوعين</li><li>بحة مستمرة أكثر من 3 أسابيع</li><li>صعوبة بلع متصاعدة</li><li>جرح في الفم لا يلتئم خلال أسبوعين</li><li>فقدان وزن غير مبرر</li></ul></div>
+          <div class="note warn">الاكتشاف المبكر ينقذ الحياة.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/head-and-neck-cancer/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="طنين الأذن tinnitus رنين">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🔔</span><span class="topic-name">طنين الأذن</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الإدارة</h4><ul><li>علاج السبب الأساسي إن وجد</li><li>تقنية إخفاء الصوت: أصوات طبيعية هادئة</li><li>تقليل التوتر والقلق يخفف الطنين</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/tinnitus/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="ضعف السمع فقدان السمع">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🦻</span><span class="topic-name">ضعف السمع</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>الأنواع</h4><ul><li>توصيلي: مشكلة في الأذن الخارجية أو الوسطى — غالباً قابل للعلاج</li><li>حسي عصبي: تلف الأذن الداخلية — غالباً دائم</li></ul></div>
+          <div class="note warn">فقدان السمع المفاجئ = طارئ طبي — راجع الطوارئ خلال 24-48 ساعة.</div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/hearing-loss/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="اللحمية الأنفية السلائل nasal polyps">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">🔮</span><span class="topic-name">اللحمية الأنفية (السلائل)</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>العلاج</h4><ul><li>بخاخ كورتيزون أنفي — العلاج الأساسي</li><li>Dupilumab — حقن بيولوجية للحالات الشديدة</li><li>جراحة عند فشل الأدوية</li><li>البخاخ ضروري بعد الجراحة للوقاية من العودة</li></ul></div>
+          <a class="more-link" href="https://www.enthealth.org/conditions/nasal-polyps/" target="_blank">للاستزادة — ENThealth.org ↗</a>
+        </div>
+      </div>
+      <div class="topic" data-title="جفاف الفم xerostomia نصائح">
+        <div class="topic-hdr" onclick="toggleTopic(this)"><span class="topic-ico">💧</span><span class="topic-name">نصائح إضافية لجفاف الفم</span><span class="topic-arr">›</span></div>
+        <div class="topic-body">
+          <div class="panel"><h4>استراتيجيات</h4><ul><li>اشرب الماء باستمرار</li><li>امضغ علكة خالية من السكر</li><li>بخاخ ترطيب الفم</li><li>تجنب مغسول الفم الكحولي</li><li>مرطب هواء في غرفة النوم</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+  <div class="no-res" id="noResults" style="display:none">لا توجد نتائج</div>
+  <div class="pf">د. محمد حسين البار | Dr. Mohammad H. Al-Bar</div>
+</div></div>
+
+<div class="tab" id="tab-doctor"><div class="pc">
+  <div class="doc-card">
+    <div class="doc-logo"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCADIAMgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCUXBJqVLnPA61XKU+GPLV0GJeSUtxUwckY71GiYA4qeNeOlIBFV81KI+etPVeKlRCaBkQjp/l+1TBKkCUhkKx8dKd5fFTBR6VNHbPL90cepoCxUEYApypWxDp8XBclvboKuxWkAxiJOvpSuPlObKUu2uoNnbtnMCf981DJpNs5+TKH2P8ASgOU59U55FO8vmr9xp0sPIG9PUdqrhcUCsRbBSBKsbfalCCgCDy8mnGPFThMUpAoAq+Xnmk2VZKZ4pNnFAFfZ7U3ZzVnbTCtAFdk46UVK68UUAclt4p9ug3dKfjtT4FO+rJLCJz0qdFx2pFXmpgB6UhiqM1KopqrzUqqc0hihRVbUtTsdHtDc39ykEQOMt3PoB1Jq4B6V4l8R/EdlrerwxWkkrw2itGT0VmzyR/LNJsaOtvfi3pVu5FnYz3WP4pGEan+ZrFuvjNrEhxbW1hbr2BUuf1Neb7oRyUB/wB45qxCsspxBau5/wBiMn+QqL3KR1svxV8UTDA1Mp/1xgUY/Sqb/EHxLKD5mt6n/wAAcr/LFUoND16Ybo9HuyMZyYmFWl8K+JJNo/sqQbjxkCnqMF8da+pz/bGr5/67tVmL4jeJYWyNd1Qf753fzFDeCfFETFX0ttwPoP8AGpB4L8UqpJ0KVsf3VB/rRZiNG1+LfiWI/Nq0cq9MT2qn+QFatr8Wbx5AbqxspR3MDGMn8DkVx83hzXYMmfQrxV7/ALlsfpWfNbvA2J7OSP8A30I/mKeoHvHh7xXp/iLdHBviuFG4wyYzj1BHBFdABXztoOtPoeqw3tqFMkeRskBKkEYPSvefD2sR69o0N+kZjL5Vkznaw4OD3FMlo0QuaMVJil20AQ7TQRzipMUmOaBEeymlB1qbFIVzQMrspJoqYrRQByAGKdCPnNAB7inwqd+ccVRJdQdKmAFRBsVKpzSAeq4NSoOaYoqRRxQMUgYNebyfCS0m1eSZbuQWLHcIyOUJPTPevTEj8w89BVgJxyMY6Ck1cpHCNp/h7wXafaI9ItZJFIVXnTe7t6DsKtaZ8RrVnxd6KsSno1uwOPqCB/OuR8R60PEGvzxQHdZ2bmGMj+Nh95vz4+gpbS1UgZwB3rlnUadkdUKaauz2bTNU0jV1P2OeNyRzH0cfVTzTb4W1mnnzsEhi+ZjivOdP0+J3Vw43A8EHkV0LWrXKLHNNLKF/vuW/nTVd22B0Ffc7bbBd26XELLJFIAVYdxVee4tbPDTyont3/LrXL28Bt2xHNIqZ5UOQPyqxItqi/vHTJ65bmn7ZtaIXsUnqxb3xjHbsfstg8oH8UjbAfwGTWnYana65YCSS0ikQna8UgztPof6Gufmht7hCsZUnuBWBLqtx4WvUvUQvbAhbiMfxJ/iOoohVlezHOnHlujs7/wAA+F9c+9YpbS/3oPkY/lwasWWkQaFbJp1rGEhhGFA5z3z9TWjaSw39pDdWsiyQSqHjdTwQehFTyobgLuI8xeAx7+xroOZooAGlIpzI0bFXBBHakNBIzmo3cIMmpqq3Y/dGgCE6hEDjcKjbUoh/FWM8W6U/MaZLb4P3jQI2TqSHoaKxFh296KAuX41ic4xSP5cTYplocPyaLsZemK5IHjI4qBbja5B6Ckj6njtVWQ/viaANaOYNjFWoxvPH41mW5/d1qWw2wg925NK5SLkeMAAcelYPjfXDoHhK+vkJWYJsi/324H5Zz+FbqdK81+Ksy3kdtpm47drSnnuOB/M1MpcquaRjzOyOT0CFLfSopWyfk3se5Jp4+23MgZrhbaIngYyxHoBVrTIC+i2y/wDTNSRVR7GS7uj50pWIDbszgN9SP5VyXVzqa0Raitr2ylWSK/kKscfPkZ/pXWaJrM00gim5cHBrk9O0SHT7WRJbkys6kR7RypJBOfXp3rS8PxyRa2uCWHAORjNE32Y4I6nVjdxhiZRHG4GDXIJ/ZrXeLi8lYg4/1oRc/Umuz8T2b3tqo2sFVc4U1xEPhm3ur2J3aS2eMFcqPvA5BzkHsaIvzCSOq0+2t0b7RZTS+Yq52u+dw+vQirerWyXukzMyjDRHP5Uyx0WC1uzc2xZd/VVGE6Y6epxz61s3MG6ykBHBQjH4UN3YkrHNfB3X3e0u9FnYn7O3mwZ/uH7wH0PP416ym1gDmvCtAjfQbjT7mFT5hlXzD/eDdR+Ve3WsquAV6NzXTTmpXOepTcLeZcktlnTa3UDhvSsuWJoXKP1H61tpjHSqOpgZj9ea0MmZtV7r/VHNWTVe6A8o/SgRgcGQ0SLig8SGlc9KBER4opGPNFMQ61BD0t0cOKbat89LdgseDQHQjjJyfpVRyWlarCAh+vaq+P3j0AaMMZ8gE1qwD9worJtifKUGte35jApPYqJZztjJ9BXlHjj5tU+1g5XZ5Y9sH/69eoXjlIMZ5PArg9esleRd/Kg8j2NZVtYnRQdpmRpEO2zhQngLjNdPb6dBKg3xKfwrA0xRHaxg/wAJI59jXQQXSpHksABXG9zrjsMu7KGCJtigcdaraHas18sygbQcE1W1TUPMdULgR7hu+netPQLy2k3+TIj7T/CaLXY7o6uSMOi7lGAOCaqfZI2fKKB64qxJf252RSthm5CjrWfK0to/mDc0ffHaraIRtW9mip0z71Xv02W8g6YU/wAqfZ34kiyDkdqZeuHgkJPUU9OhLuchFpqJdqiAmGNl2k+uM4/Cu50xm+zrgngVlNZr5MEioF4zj6jrWzYqIURsfKetbUY2RjWleVjftZQ6DnNVtU4aM/UU9YjGQ8Z680zUm3RxMeuTW5gzONV7n/VH6VMeM1Xu2Hkmgkw9uZDxQ6HFZ2qXslrbtJHgkZ61yknim9LhTtrSMG1chySOzfdk0VxkniC7WPd8tFU6TRPOmdvB98026yehp0OC5pLrgisi+hXjQ+ZnJ6U0DEjVLCfnqP8A5bsKaEXLbhBWzaDKfjWLCcAVt2B3KwHXGaTLiR3X7yXB6Cuc1GESTOCM4rrGQFS3oOa525TMrn1NRJXLTszkHb7O8kY7OxP481W1i5vItMjezwWZgrewq3rBW2v1LY2Srgn/AGh/9as77YkMxR8GM9BnpXJKNpHTGV4mLBdJNP8AZLyeSO5Y4AZCc/Q9K09P0ueyvhc2d+8IK4bcp5/pWpNZwzkOoXnkHHStHTrkWsZiklEeVxjcMEfjQpXNFBEdlHfSziS91JWXPRQQP5VPq2p3EcP2Wzma5nC8xxoTx6k9q2bM/b1AaVnGMbdwA65HStVbGCGFgFXcwyxx1qmxOKRjeGLia40RZJVYSKSMN3xWuZC9m5PJ7cVnW8iRRtAEKbe2auQuLq6gtUzhmG76Dk0krsmUtC9bo7QIjnJQYFbdnGJLFhj5lNV/JCzH3q5aHypCMfKeorsStscl77lm1JA2NUep/Kkf1NWnjVFDryOxrJ1u43LEkZy4JLAUAysx4qnduBC2Kp3l7JboNwPJqOaYva7ieopkHOazJm0bv1rhZuZVIFejm0W5iIYZBqg+hWgPKjNbQqJRsZyjd3OMnceTjFFdj/YNo/aiqdSLJUGjoooPLbOadLEsh5qu2ow9N3NJ9qL8qOK59TUm2ImcCqDkeexFEly5OBmq4kKHLiqSE2aMXKita23iRPLzmsaOZSigck9hXVWVsYoAzLhz19qmRURsmVtznqeTXP3Py7ia37xgqYzXNX0vUDknsKllmBqli99Y3cyjiEr0H5muJuxItvJu+WVfQ8n3r2PSbXy7DbIvMmS4PfPb8q4/xJ4RlhLz2qNLbHkqoy0f4dxWM4vc1i1sYXhrVI54StyQpPT2qbV4YtQeJYXJw3LA9faucmspbWRpLfLRsPu55zTYNQltYzHIHXkspI5Ht9aj2evMi/aacrPU/DEdlZWgjAxIvLNnmtPW9ThtLBplkB4yee1eX2mvSKdsYdhxuIXt3qwk15qlwnm5S2bgKep/wp8mt2Jz0sjpbe98/wDfmQ/cAPGce1dZ4ctWgDXsq/635Uz/AArXP6NpixICwGByM9a7PSH3aVFI+VSaRzFkdVBwPzwTV07cxM78pqPGGUOtSKvAam27ADyz0PSrCLg7TW5kWIDuQo3I75rB1BIbW9MeDz8wrejUr2rF1lU+3B2BzsGKQmc/rkXnW4CAk5qqObMK3GBWxK8ZQ5Haufvb1ArIvXoKZLHW5RWIJ4omiikYndj8as2FvbvahmOSasG0tCPWgDKSJYud2fxorReytgPl/nRQMqR6TbI+49c+taMVnDt+UCsI30m7lSav2GokthwatpkXRpLpsGcleabLpdtIfmUU57vavy81JZxS3L+bICIh0H940npqVo9CSx0u3icShBlfu+1aqD9y3qOaLVRllNWEjwSPWs93cu1jnp/MuyQo2p/eNRfYURSQPmPG49a2Gi68YApBFuQ8YHamBRiXCgVLtz2oCGNiSCV7+1WFUYBHIoA57UfDFjqDNJs8qY/8tIxjJ9x0NcxeeCb2M5jSO4X/AGcAn8D/AI16UEyaWOEPewj3J/Sk4JjUmjyuPw5do+17KdCeP9Ua39O8K3S42WUzH1YYH616WsW01Mo4qPZ+ZXP5HOad4VJw2oOpT/nhGev+83p7Cty7s454kjxtC/c28Yq4OlMlHyEjr1q4xUdiXJvcyDazwjj58dxU8Nwsvytw47VfAAVT6017aKQ5ZBn1qriHRHPBrN12D91HKBnacGrqqUbAb8DUk0YuIHikHDDFIDjpBmNuK4y/YLO/oDXbXUUlu0kbjlf1rgdR+a7kHTmmjNm/Y7msV2ntQTOvcUWCk2KhTjinmOT+8KYERkmPBxRTmhkJzxRQIcEQjoKFCLyAKhjDy42559K39M0hY3WS4w0nZCeB/ia0ckhKLYabp7S7ZLhSqHlV9frW55W1cKOB6VIIx6EGpVG0etYtt7mySRVhBWXnvWggBOahaDcN69fSpYuuDSQFSVDvb60RpkVZmU7zxTIB8xFUBVMQEvTimvAY2+U4B/KrkyYbNO8sSR+4oApAbR8wx7jkU+1w19Hg5+U1Lt2HB6UW8CrqKv1yjcflQBobacoxxRhR159qXb8uQMGkA7cBTZTiM56mmbt0oUdutLLy4WgBSP3QpUO5adj5cVEp2SYPekAyYsjhscU8S9FxzT5l3RGqjnDL60wHS21vdAiWMNnrkVzep+A7O73S2s8kMp5AY7lP9a6xDj6kZqNSQWNFwscG2jX2nweXPFgDjcvKn8aqmGUd69HlysRJ545rA1fRwifabcfLjLoO3uKaZLicqUlUdaKtNgDmii5NiLRUaZy64Hl4259a6FI1lIDYjf8ASsfw9A0WmIWOHkYuf5D9BW/GQOJUyPUVLd2aJaFmCaSA+XOMr2argQEbl6VWRRs4O+P9RU0J+zsOcxN+lMCVflGR0NGMPkVJIu0ZA+U0xRzSAVx+8+oqBRtmFWXwApx7VHIuJA1MBZUytMtzg4qxjctViNklAD5ogarRErexx9iDj8qvuN0eRVQKDcQSd1fH5jFAF4KF5NIWyD6UMeaQLu+lAEcH3i/rUiDdMSewpoG3j0qVfkjz3NIBw6GoZ14BFTJ9002QZSgBitvi96inThTSwNhipqaVMx0ARu2BG/tSkfvAR0NMX5oWXuKW3bcQp7UASSjKuP8AZpdo2Kp/ugUSfdb3IFPfCgse3SgDzzxLbSaZfZRf3EmWQ+nqKK6jxLpjanocyRj9+g8yP6jt+IoqiWjItE8u0hP8O0A+xrQifbwRuSsy1uBC3lyDMbfoa1EjIw0bBlqEWWkTbh4jwanQq4IABz1WoIXCDgfUVa2JMu9Dg+o7VQh0D4PkyHIP3T6inlSjY7GoCWOEfhxyretWUImiz0Zeo9KAFIBjP5imD95DnuKeBlWHtUUB5ZT3oAkiOU+lRzpkZp8XBIp7DctADIG3Jj0qrN+6mHpuB/Wpo/3cuD0NM1BM27MOq80AW9vNOxxigHIBHcZo60gImHzAetLKcACgcsSe1Ru26TFMCyn3aaelPX7ophPUUgK6/wCtqyQSmKrqP31WGO0g0AMVQX+vWokGy4/Gp2X+JaYwzIretMCRuWQepzUch3yhO3U0/cDMx/ujFQocBpCep4pAWCM8dqKaDmMMe9FMDiFTcyg9CasxmW2bAY4FRWw8+PA+8KvKfnBkXr3pIC1b3kcmBKMH+9WgiBTuRuD+RrO+yqwyhp0LTWzccr3FMDVZFkXBFVxI1vOAxyDxn1qWGVJV3IcHutJdRebCSv3hyKALIHIYdDVZhsmyD0NLYz70CPwcd6W4UrPnswoAeRhgw70/oajjIZdpp/SgCOZCRuHUUS/vbVvdSKmHTFRKNu9PyoAW2bfaRN32iphVaxJ+ygf3WZf1qzSAjkwgJ9arpkvk1Lcn7oqKMZyRyBTAuE4wKjz85oJ3YxQFPrQA1B+8JqVxuWkC08CkBFDJnKHqOlSYz+BpphBfdkg0/GKAK24lXI6sxApknLJEtK5CSsB0UZpsI3OZD+FMC03AC0UzdhuTwOTRQBxCSNbyiRfxrbt5obyMA4V896KKSAnVHibHarSFXHI5oopgDW5Vt8Rww/WrEMol+Vxtk7j1oooArSI1vcZ/hJyD6H0q5KRJCrjqDg0UUAV8lTkVaU70yKKKAFFNfhgwoooAZbpsknXsWDD8R/8AWqwKKKQFe6+6PrUUH3XH0NFFMCdaeDRRQA5adRRSAKTPNFFAGbLlrh0zy75PsBU6sFQkdB0ooqmAxN0z7B0HLH+lFFFJgf/Z" alt="Dr. Al-Bar" style="width:100%;height:100%;object-fit:cover;"></div>
+    <div class="doc-name">د. محمد حسين البار</div>
+    <div class="doc-title">MD, SB-ORL, Arab Board ORL<br>استشاري طب وجراحة الأنف والأذن والحنجرة<br>أستاذ مساعد — جامعة الإمام عبدالرحمن الفيصل</div>
+    <div class="doc-tags">
+      <span class="doc-tag">👃 الأنف والجيوب</span>
+      <span class="doc-tag">🔭 قاع الجمجمة</span>
+      <span class="doc-tag">🎤 الحنجرة والصوت</span>
+      <span class="doc-tag">😴 جراحة النوم</span>
+    </div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">📋 الملخص المهني</div>
+    <p style="font-size:13px;line-height:1.8;color:#374151">خبرة أكاديمية وسريرية واسعة تمتد لسنوات عديدة في الرعاية السريرية والتعليم الطبي وتدريب الأطباء المقيمين والبحث العلمي. حاصل على زمالتين من جامعة Miami في جراحة الأنف والجيوب وقاع الجمجمة، وفي جراحة الحنجرة والصوت.</p>
+  </div>
+  <div class="icard">
+    <div class="icard-title">🏥 مواقع العمل</div>
+    <div class="irow"><span class="irow-label">🎓 أستاذ مساعد — IAU / KFHU</span><span class="irow-val">2015 -- الآن</span></div>
+    <div class="irow"><span class="irow-label">🏨 استشاري — مستشفى الحبيب</span><span class="irow-val">2019 -- الآن</span></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">🎓 التدريب والزمالات</div>
+    <div class="irow"><span class="irow-label">زمالة جراحة الحنجرة والصوت</span><span class="irow-val">Miami 2014--15</span></div>
+    <div class="irow"><span class="irow-label">زمالة الأنف وقاع الجمجمة</span><span class="irow-val">Miami 2012--14</span></div>
+    <div class="irow"><span class="irow-label">تخصص أنف وأذن وحنجرة</span><span class="irow-val">SCFHS 2005--11</span></div>
+    <div class="irow"><span class="irow-label">MBBS — جامعة الملك فيصل</span><span class="irow-val">2005</span></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">📊 الإنتاج البحثي</div>
+    <div class="irow"><span class="irow-label">مقالات علمية محكّمة</span><span class="irow-val">23 مقالة</span></div>
+    <div class="irow"><span class="irow-label">فصول في كتب طبية</span><span class="irow-val">7 فصول</span></div>
+    <div class="irow"><span class="irow-label">مجموع الاستشهادات</span><span class="irow-val">238+</span></div>
+    <div class="irow"><span class="irow-label">h-index</span><span class="irow-val">9</span></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">📅 أوقات العيادة — مستشفى الحبيب</div>
+    <div class="irow"><span class="irow-label">الأحد</span><span class="irow-val">11ص -- 4م</span></div>
+    <div class="irow"><span class="irow-label">الاثنين</span><span class="irow-val">5م -- 7م</span></div>
+    <div class="irow"><span class="irow-label">الثلاثاء</span><span class="irow-val">2م -- 6م</span></div>
+    <div class="irow"><span class="irow-label">الأربعاء</span><span class="irow-val">4م -- 7م</span></div>
+    <div class="irow"><span class="irow-label">الخميس</span><span class="irow-val">11ص -- 3م</span></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">📅 المستشفى الجامعي KFHU</div>
+    <div class="irow"><span class="irow-label">الثلاثاء</span><span class="irow-val">من 9ص</span></div>
+  </div>
+  <div class="pf">د. محمد حسين البار | Dr. Mohammad H. Al-Bar</div>
+</div></div>
+
+<div class="tab" id="tab-medicines"><div class="pc">
+  <div class="doc-card" style="text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">🩺</div>
+    <div class="doc-name">للأطباء والطلبة</div>
+    <div class="doc-title">موارد تعليمية متخصصة في طب الأنف والأذن والحنجرة</div>
+  </div>
+  <div class="icard" style="text-align:center;">
+    <div class="icard-title">محتوى مخصص</div>
+    <p style="font-size:13px;line-height:1.8;color:var(--text-soft);margin-bottom:14px;">مواد تعليمية وإرشادية للأطباء المقيمين وطلبة الطب</p>
+    <a class="cbtn wide" href="#" onclick="openDoctorsApp(); return false;">فتح تطبيق الأطباء والطلبة ↗</a>
+  </div>
+  <div class="pf">د. محمد حسين البار | Dr. Mohammad H. Al-Bar</div>
+</div></div>
+
+<div class="tab" id="tab-contact"><div class="pc">
+  <div class="icard">
+    <div class="icard-title">🏥 مستشفى الحبيب — ساعات العيادة</div>
+    <div class="irow"><span class="irow-label">الأحد</span><span class="irow-val">11ص -- 4م</span></div>
+    <div class="irow"><span class="irow-label">الاثنين</span><span class="irow-val">5م -- 7م</span></div>
+    <div class="irow"><span class="irow-label">الثلاثاء</span><span class="irow-val">2م -- 6م</span></div>
+    <div class="irow"><span class="irow-label">الأربعاء</span><span class="irow-val">4م -- 7م</span></div>
+    <div class="irow"><span class="irow-label">الخميس</span><span class="irow-val">11ص -- 3م</span></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">🎓 المستشفى الجامعي KFHU</div>
+    <div class="irow"><span class="irow-label">الثلاثاء</span><span class="irow-val">من 9ص</span></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">📞 أرقام مستشفى الحبيب</div>
+    <div class="crow"><div><div class="crow-lbl">الرقم الموحد</div><div class="crow-num" dir="ltr">0138711111</div></div><a class="cbtn" href="tel:0138711111">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">استقبال العيادة</div><div class="crow-num" dir="ltr">0138711269</div></div><a class="cbtn" href="tel:0138711269">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">استقبال (2)</div><div class="crow-num" dir="ltr">0559903683</div></div><a class="cbtn" href="tel:0559903683">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">تنسيق العمليات (1)</div><div class="crow-num" dir="ltr">0138711206</div></div><a class="cbtn" href="tel:0138711206">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">تنسيق العمليات (2)</div><div class="crow-num" dir="ltr">0138711836</div></div><a class="cbtn" href="tel:0138711836">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">تنسيق العمليات (3)</div><div class="crow-num" dir="ltr">0557756821</div></div><a class="cbtn" href="tel:0557756821">اتصال</a></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">📞 أرقام المستشفى الجامعي (KFHU)</div>
+    <div class="crow"><div><div class="crow-lbl">القطاع الخاص (1)</div><div class="crow-num" dir="ltr">+966 13 896 6733</div></div><a class="cbtn" href="tel:+966138966733">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">القطاع الخاص (2)</div><div class="crow-num" dir="ltr">+966 56 844 1530</div></div><a class="cbtn" href="tel:+966568441530">اتصال</a></div>
+    <div class="crow"><div><div class="crow-lbl">واتساب الجامعي</div></div><a class="cbtn grn" href="https://wa.me/966138957964" target="_blank">واتساب</a></div>
+  </div>
+  <div class="icard">
+    <div class="icard-title">💬 التواصل عبر الواتساب</div>
+    <a class="cbtn grn wide" href="https://wa.me/message/6TYAFZZ7B3TZO1?src=qr" target="_blank">💬 التواصل عبر الواتساب</a>
+  </div>
+
+  <div class="pf">د. محمد حسين البار | Dr. Mohammad H. Al-Bar</div>
+</div></div>
+
+<nav class="bnav">
+  <div class="ni active" id="nav-home" onclick="switchTab('home')"><span class="ico">🏠</span><span class="lbl">الرئيسية</span></div>
+  <div class="ni" id="nav-doctor" onclick="switchTab('doctor')"><span class="ico">👨‍⚕️</span><span class="lbl">طبيبك</span></div>
+  <div class="ni" id="nav-instructions" onclick="switchTab('instructions')"><span class="ico">📋</span><span class="lbl">إرشادات</span></div>
+  <div class="ni" id="nav-medicines" onclick="openDoctorsApp()"><span class="ico">🩺</span><span class="lbl">للأطباء</span></div>
+  <div class="ni" id="nav-contact" onclick="switchTab('contact')"><span class="ico">📞</span><span class="lbl">تواصل</span></div>
+</nav>
+
+<script>
+// Tips
+const TIPS=['اشرب 8 أكواب ماء يومياً — الترطيب يحمي حبالك الصوتية.','نظّف أنفك بالغسول الملحي يومياً — يقلل الالتهابات ويسرّع الشفاء.','تجنب الهمس عند البحة — يُجهد الحبال مثل الصراخ.','لا تدخل القطن في أذنك — يضغط الشمع للداخل.','النوم على جانبك الأيسر يقلل ارتجاع المعدة.','تمرين الشم اليومي (4 روائح × 20 ثانية) يسرّع عودة حاسة الشم.','بحة تستمر أكثر من 3 أسابيع = تقييم طبي عاجل.','رفع رأس السرير 15 سم يقلل الارتجاع الليلي.','التوقف عن التدخين هو أهم خطوة لصحة حنجرتك.','الغضاريف الأنفية لا تتوقف عن النمو مع العمر.'];
+document.getElementById('dailyTip').textContent=TIPS[new Date().getDate()%TIPS.length];
+
+
+
+// Tab switching
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(v=>v.classList.remove('active'));
+  document.getElementById('tab-'+n).classList.add('active');
+  document.getElementById('nav-'+n).classList.add('active');
+  // Show/hide back button
+  var btn=document.getElementById('backBtn');
+  if(n==='home') btn.classList.remove('show');
+  else btn.classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Accordion sections (auto-close others)
+function toggleSection(h){
+  const sec = h.closest('.sec');
+  const wasOpen = sec.classList.contains('open');
+  // Close all sections
+  document.querySelectorAll('.sec.open').forEach(s=>{
+    if(s !== sec) s.classList.remove('open');
+  });
+  sec.classList.toggle('open', !wasOpen);
+}
+
+// Topics
+function toggleTopic(h){h.closest('.topic').classList.toggle('open');}
+
+// Search with highlight
+function filterTopics(q){
+  q=q.trim().toLowerCase();
+  const topics=document.querySelectorAll('.topic');
+  const sections=document.querySelectorAll('.sec');
+  let any=false;
+  // Remove old highlights
+  document.querySelectorAll('.highlight').forEach(el=>{
+    el.replaceWith(document.createTextNode(el.textContent));
+  });
+  topics.forEach(t=>{
+    const m=!q||(t.dataset.title||'').toLowerCase().includes(q)||t.textContent.toLowerCase().includes(q);
+    t.style.display=m?'':'none';
+    if(m){
+      any=true;
+      if(q){
+        t.classList.add('open');
+        t.closest('.sec').classList.add('open');
+        // Highlight matching text in panels
+        t.querySelectorAll('.panel p, .panel li, .topic-name').forEach(el=>{
+          if(el.children.length===0 || el.classList.contains('topic-name')){
+            var txt=el.innerHTML;
+            var regex=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+            if(regex.test(txt)){
+              el.innerHTML=txt.replace(regex,'<span class="highlight">$1</span>');
+            }
+          }
+        });
+      }
+    }
+  });
+  if(!q){
+    topics.forEach(t=>{t.style.display='';t.classList.remove('open');});
+    sections.forEach(s=>s.classList.remove('open'));
+  }
+  document.getElementById('noResults').style.display=(q&&!any)?'block':'none';
+}
+
+
+
+// Scroll to top button + progress bar
+window.addEventListener('scroll',()=>{
+  const btn=document.getElementById('scrollTop');
+  if(window.scrollY>400) btn.classList.add('show');
+  else btn.classList.remove('show');
+  // Progress bar
+  var h=document.documentElement;
+  var progress=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  document.getElementById('progressBar').style.width=Math.min(progress,100)+'%';
+});
+
+// Dark mode
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  document.getElementById('darkToggle').textContent = isDark ? '☀️' : '🌙';
+  try{localStorage.setItem('dark',isDark?'1':'0');}catch(e){}
+}
+// Restore dark mode preference
+try{if(localStorage.getItem('dark')==='1'){document.body.classList.add('dark');document.getElementById('darkToggle').textContent='☀️';}}catch(e){}
+
+// Doctors app redirect
+function openDoctorsApp(){
+  window.open('https://malbarr.github.io/ORL101/', '_blank');
+}
+
+// Telegram WebApp disabled for web deployment
+</script>
+
+</body>
+</html>
