@@ -1,7 +1,7 @@
 {
   "name": "AlBar Health",
   "short_name": "AlBar Health",
-  "start_url": "/",
+  "start_url": "/Albar-Health-V2/",
   "display": "standalone",
   "background_color": "#1a3352",
   "theme_color": "#1a3352",
