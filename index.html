@@ -261,6 +261,23 @@ body.dark .srch { background:var(--surface); }
   white-space: nowrap;
   font-family: inherit;
 }
+
+/* ── OR TAB ── */
+.or-lbl { display:block; font-size:12px; font-weight:700; color:var(--text-soft); margin-bottom:6px; }
+.or-inp { width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; font-size:15px; font-family:var(--font-body); color:var(--text); background:var(--bg); outline:none; transition:border-color var(--transition); }
+.or-inp:focus { border-color:var(--gold); }
+.or-btn { width:100%; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border:none; border-radius:var(--radius-sm); padding:14px; font-family:var(--font-head); font-size:15px; font-weight:800; cursor:pointer; transition:var(--transition); box-shadow:0 4px 12px rgba(26,51,82,0.2); }
+.or-btn:active { transform:scale(0.98); }
+.or-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.or-btn-outline { display:block; width:100%; margin-top:8px; background:transparent; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px; font-family:var(--font-body); font-size:14px; color:var(--text-soft); cursor:pointer; text-align:center; }
+.or-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+.or-row:last-child { border-bottom:none; }
+.or-row-lbl { font-size:12px; color:var(--text-soft); font-weight:600; }
+.or-row-val { font-size:14px; font-weight:700; color:var(--text); }
+.or-badge { display:inline-block; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; }
+.or-badge.approved { background:var(--green-light); color:var(--green); }
+.or-badge.pending { background:#fffbeb; color:#78350f; }
+.or-badge.rejected { background:var(--red-light); color:var(--red); }
 </style>
 
 </head>
@@ -295,6 +312,7 @@ body.dark .srch { background:var(--surface); }
     <div class="qcard" onclick="switchTab('contact')"><div class="qi">📞</div><div class="qt">التواصل</div><div class="qs">مواعيد وأرقام</div></div>
     <div class="qcard" onclick="switchTab('doctor')"><div class="qi">👨‍⚕️</div><div class="qt">طبيبك</div><div class="qs">تعرف على الدكتور</div></div>
     <div class="qcard" onclick="openDoctorsApp()"><div class="qi">🩺</div><div class="qt">للأطباء والطلبة</div><div class="qs">موارد تعليمية</div></div>
+    <div class="qcard" onclick="switchTab('or')" style="border-color:var(--accent-mid);background:linear-gradient(135deg,var(--accent-light),#fff);grid-column:1/-1;"><div class="qi">🏥</div><div class="qt">متابعة العملية</div><div class="qs">موعدك وحالة التأمين</div></div>
   </div>
   <div class="emg">
     <div class="emg-title">راجع الطوارئ فوراً إذا كان لديك</div>
@@ -820,12 +838,51 @@ body.dark .srch { background:var(--surface); }
   <div class="pf">د. محمد حسين البار | Dr. Mohammad H. Al-Bar</div>
 </div></div>
 
+<div class="tab" id="tab-or"><div class="pc">
+  <div class="hero">
+    <div class="hero-title">متابعة العملية</div>
+    <div class="hero-sub">تحقق من موعد عمليتك وحالة التأمين</div>
+  </div>
+
+  <div id="or-step1" class="icard">
+    <div class="icard-title">🔐 التحقق من هويتك</div>
+    <div style="margin-bottom:10px;">
+      <label class="or-lbl">رقم الملف</label>
+      <input class="or-inp" id="or-filenum" type="text" inputmode="numeric" placeholder="مثال: 123456" dir="ltr">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="or-lbl">آخر 4 أرقام من جوالك</label>
+      <input class="or-inp" id="or-phone4" type="text" inputmode="numeric" maxlength="4" placeholder="XXXX" dir="ltr">
+    </div>
+    <button class="or-btn" onclick="orRequestOTP()">📲 إرسال كود التحقق</button>
+    <div id="or-err1" class="note warn" style="display:none;margin-top:10px;"></div>
+  </div>
+
+  <div id="or-step2" class="icard" style="display:none;">
+    <div class="icard-title">💬 كود التحقق</div>
+    <p style="font-size:13px;color:var(--text-soft);margin-bottom:12px;">أرسلنا كود مكوّن من رقمين على واتساب</p>
+    <div style="margin-bottom:16px;text-align:center;">
+      <input class="or-inp" id="or-otp" type="text" inputmode="numeric" maxlength="2" placeholder="XX" dir="ltr" style="text-align:center;font-size:32px;letter-spacing:8px;width:120px;">
+    </div>
+    <button class="or-btn" onclick="orVerifyOTP()">✅ تحقق</button>
+    <button class="or-btn-outline" onclick="orReset()">← رجوع</button>
+    <div id="or-err2" class="note warn" style="display:none;margin-top:10px;"></div>
+  </div>
+
+  <div id="or-step3" style="display:none;">
+    <div class="note ok" style="margin-bottom:14px;font-size:14px;">✅ تم التحقق</div>
+    <div class="icard" id="or-data"></div>
+    <button class="or-btn-outline" onclick="orReset()" style="margin-top:12px;">🔄 بحث جديد</button>
+  </div>
+</div></div>
+
 <nav class="bnav">
   <div class="ni active" id="nav-home" onclick="switchTab('home')"><span class="ico">🏠</span><span class="lbl">الرئيسية</span></div>
   <div class="ni" id="nav-doctor" onclick="switchTab('doctor')"><span class="ico">👨‍⚕️</span><span class="lbl">طبيبك</span></div>
   <div class="ni" id="nav-instructions" onclick="switchTab('instructions')"><span class="ico">📋</span><span class="lbl">إرشادات</span></div>
   <div class="ni" id="nav-medicines" onclick="openDoctorsApp()"><span class="ico">🩺</span><span class="lbl">للأطباء</span></div>
   <div class="ni" id="nav-contact" onclick="switchTab('contact')"><span class="ico">📞</span><span class="lbl">تواصل</span></div>
+  <div class="ni" id="nav-or" onclick="switchTab('or')"><span class="ico">🏥</span><span class="lbl">عملياتي</span></div>
 </nav>
 
 <script>
@@ -926,6 +983,66 @@ try{if(localStorage.getItem('dark')==='1'){document.body.classList.add('dark');d
 // Doctors app redirect
 function openDoctorsApp(){
   window.open('https://malbarr.github.io/ORL101/', '_blank');
+}
+
+// OR Operations tracking
+const OR_API = 'https://albar-or.loca.lt';
+let _orFile = '', _orPhone = '';
+
+function orRequestOTP(){
+  const f = document.getElementById('or-filenum').value.trim();
+  const p = document.getElementById('or-phone4').value.trim();
+  const err = document.getElementById('or-err1');
+  err.style.display='none';
+  if(!f||!p||p.length!==4){err.textContent='الرجاء إدخال رقم الملف وآخر 4 أرقام من جوالك';err.style.display='block';return;}
+  const btn = document.querySelector('#or-step1 .or-btn');
+  btn.disabled=true; btn.textContent='⏳ جاري الإرسال...';
+  fetch(OR_API+'/request-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileNumber:f,phoneLast4:p})})
+    .then(r=>r.json()).then(d=>{
+      btn.disabled=false; btn.textContent='📲 إرسال كود التحقق';
+      if(d.success){_orFile=f;_orPhone=p;document.getElementById('or-step1').style.display='none';document.getElementById('or-step2').style.display='block';}
+      else{err.textContent=d.message||'خطأ في التحقق';err.style.display='block';}
+    }).catch(()=>{btn.disabled=false;btn.textContent='📲 إرسال كود التحقق';err.textContent='تعذّر الوصول للخادم — تأكد من تشغيل الـ API';err.style.display='block';});
+}
+
+function orVerifyOTP(){
+  const otp = document.getElementById('or-otp').value.trim();
+  const err = document.getElementById('or-err2');
+  err.style.display='none';
+  if(!otp||otp.length!==2){err.textContent='أدخل الكود المكوّن من رقمين';err.style.display='block';return;}
+  const btn = document.querySelector('#or-step2 .or-btn');
+  btn.disabled=true; btn.textContent='⏳ جاري التحقق...';
+  fetch(OR_API+'/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileNumber:_orFile,otp:otp})})
+    .then(r=>r.json()).then(d=>{
+      btn.disabled=false; btn.textContent='✅ تحقق';
+      if(d.success){
+        const p=d.patient;
+        const ins=p.insuranceStatus||'';
+        const badge=ins.toLowerCase().includes('approv')||ins.includes('موافق')?'approved':ins.toLowerCase().includes('reject')||ins.includes('رفض')?'rejected':'pending';
+        document.getElementById('or-data').innerHTML=
+          '<div class="icard-title">🏥 بيانات العملية</div>'+
+          '<div class="or-row"><span class="or-row-lbl">المريض</span><span class="or-row-val">'+(p.patientName||'—')+'</span></div>'+
+          '<div class="or-row"><span class="or-row-lbl">رقم الملف</span><span class="or-row-val" dir="ltr">'+(p.fileNumber||'—')+'</span></div>'+
+          '<div class="or-row"><span class="or-row-lbl">نوع العملية</span><span class="or-row-val">'+(p.procedure||'—')+'</span></div>'+
+          '<div class="or-row"><span class="or-row-lbl">تاريخ العملية</span><span class="or-row-val" dir="ltr">'+(p.surgeryDate||'لم يُحدد بعد')+'</span></div>'+
+          '<div class="or-row"><span class="or-row-lbl">التأمين</span><span class="or-row-val"><span class="or-badge '+badge+'">'+(ins||'—')+'</span></span></div>';
+        document.getElementById('or-step2').style.display='none';
+        document.getElementById('or-step3').style.display='block';
+      }
+      else{err.textContent=d.message||'كود غير صحيح';err.style.display='block';}
+    }).catch(()=>{btn.disabled=false;btn.textContent='✅ تحقق';err.textContent='تعذّر الوصول للخادم';err.style.display='block';});
+}
+
+function orReset(){
+  document.getElementById('or-step1').style.display='block';
+  document.getElementById('or-step2').style.display='none';
+  document.getElementById('or-step3').style.display='none';
+  document.getElementById('or-filenum').value='';
+  document.getElementById('or-phone4').value='';
+  document.getElementById('or-otp').value='';
+  document.getElementById('or-err1').style.display='none';
+  document.getElementById('or-err2').style.display='none';
+  _orFile=''; _orPhone='';
 }
 
 // Telegram WebApp disabled for web deployment
