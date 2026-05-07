@@ -845,7 +845,7 @@ body.dark .srch { background:var(--surface); }
   </div>
 
   <div id="or-step1" class="icard">
-    <div class="icard-title">🔐 التحقق من هويتك</div>
+    <div class="icard-title">🔍 البحث عن موعدك</div>
     <div style="margin-bottom:10px;">
       <label class="or-lbl">رقم الملف</label>
       <input class="or-inp" id="or-filenum" type="text" inputmode="numeric" placeholder="مثال: 123456" dir="ltr">
@@ -854,19 +854,8 @@ body.dark .srch { background:var(--surface); }
       <label class="or-lbl">آخر 4 أرقام من جوالك</label>
       <input class="or-inp" id="or-phone4" type="text" inputmode="numeric" maxlength="4" placeholder="XXXX" dir="ltr">
     </div>
-    <button class="or-btn" onclick="orRequestOTP()">📲 إرسال كود التحقق</button>
+    <button class="or-btn" onclick="orVerify()">🔍 عرض بياناتي</button>
     <div id="or-err1" class="note warn" style="display:none;margin-top:10px;"></div>
-  </div>
-
-  <div id="or-step2" class="icard" style="display:none;">
-    <div class="icard-title">💬 كود التحقق</div>
-    <p style="font-size:13px;color:var(--text-soft);margin-bottom:12px;">أرسلنا كود مكوّن من رقمين على واتساب</p>
-    <div style="margin-bottom:16px;text-align:center;">
-      <input class="or-inp" id="or-otp" type="text" inputmode="numeric" maxlength="2" placeholder="XX" dir="ltr" style="text-align:center;font-size:32px;letter-spacing:8px;width:120px;">
-    </div>
-    <button class="or-btn" onclick="orVerifyOTP()">✅ تحقق</button>
-    <button class="or-btn-outline" onclick="orReset()">← رجوع</button>
-    <div id="or-err2" class="note warn" style="display:none;margin-top:10px;"></div>
   </div>
 
   <div id="or-step3" style="display:none;">
@@ -986,63 +975,52 @@ function openDoctorsApp(){
 }
 
 // OR Operations tracking
-const OR_API = 'https://endeared-caution-each.ngrok-free.dev';
-let _orFile = '', _orPhone = '';
+const _urlParams = new URLSearchParams(window.location.search);
+const OR_API = (_urlParams.get('api') || localStorage.getItem('or_api') || 'https://endeared-caution-each.ngrok-free.dev').replace(/\/$/,'');
+if(_urlParams.get('api')) try{localStorage.setItem('or_api',_urlParams.get('api'));}catch(e){}
 
-function orRequestOTP(){
+function orVerify(){
   const f = document.getElementById('or-filenum').value.trim();
   const p = document.getElementById('or-phone4').value.trim();
   const err = document.getElementById('or-err1');
   err.style.display='none';
   if(!f||!p||p.length!==4){err.textContent='الرجاء إدخال رقم الملف وآخر 4 أرقام من جوالك';err.style.display='block';return;}
   const btn = document.querySelector('#or-step1 .or-btn');
-  btn.disabled=true; btn.textContent='⏳ جاري الإرسال...';
-  fetch(OR_API+'/request-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileNumber:f,phoneLast4:p})})
+  btn.disabled=true; btn.textContent='⏳ جاري البحث...';
+  fetch(OR_API+'/api/patient-verify',{method:'POST',headers:{'Content-Type':'application/json','Bypass-Tunnel-Reminder':'true'},body:JSON.stringify({fileNumber:f,phoneLast4:p})})
     .then(r=>r.json()).then(d=>{
-      btn.disabled=false; btn.textContent='📲 إرسال كود التحقق';
-      if(d.success){_orFile=f;_orPhone=p;document.getElementById('or-step1').style.display='none';document.getElementById('or-step2').style.display='block';}
-      else{err.textContent=d.message||'خطأ في التحقق';err.style.display='block';}
-    }).catch(()=>{btn.disabled=false;btn.textContent='📲 إرسال كود التحقق';err.textContent='تعذّر الوصول للخادم — تأكد من تشغيل الـ API';err.style.display='block';});
-}
-
-function orVerifyOTP(){
-  const otp = document.getElementById('or-otp').value.trim();
-  const err = document.getElementById('or-err2');
-  err.style.display='none';
-  if(!otp||otp.length!==2){err.textContent='أدخل الكود المكوّن من رقمين';err.style.display='block';return;}
-  const btn = document.querySelector('#or-step2 .or-btn');
-  btn.disabled=true; btn.textContent='⏳ جاري التحقق...';
-  fetch(OR_API+'/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileNumber:_orFile,otp:otp})})
-    .then(r=>r.json()).then(d=>{
-      btn.disabled=false; btn.textContent='✅ تحقق';
+      btn.disabled=false; btn.textContent='🔍 عرض بياناتي';
       if(d.success){
         const p=d.patient;
-        const ins=p.insuranceStatus||'';
-        const badge=ins.toLowerCase().includes('approv')||ins.includes('موافق')?'approved':ins.toLowerCase().includes('reject')||ins.includes('رفض')?'rejected':'pending';
+        const ins=p.insurance||'';
+        const badge=ins==='approved'?'approved':ins==='rejected'?'rejected':'pending';
+        const insLabel=ins==='approved'?'موافق':ins==='rejected'?'مرفوض':'قيد المراجعة';
+        let slotsHtml='';
+        if(p.slots&&p.slots.length){
+          slotsHtml='<div class="or-row" style="flex-direction:column;align-items:flex-start;gap:6px;"><span class="or-row-lbl">المواعيد المتاحة</span>'+
+            p.slots.map(s=>'<span class="or-row-val" style="font-size:13px;">'+s.weekday+' '+s.date+' '+s.month+' | '+s.time+'</span>').join('')+'</div>';
+        }
         document.getElementById('or-data').innerHTML=
           '<div class="icard-title">🏥 بيانات العملية</div>'+
-          '<div class="or-row"><span class="or-row-lbl">المريض</span><span class="or-row-val">'+(p.patientName||'—')+'</span></div>'+
+          '<div class="or-row"><span class="or-row-lbl">المريض</span><span class="or-row-val">'+(p.fullName||p.name||'—')+'</span></div>'+
           '<div class="or-row"><span class="or-row-lbl">رقم الملف</span><span class="or-row-val" dir="ltr">'+(p.fileNumber||'—')+'</span></div>'+
           '<div class="or-row"><span class="or-row-lbl">نوع العملية</span><span class="or-row-val">'+(p.procedure||'—')+'</span></div>'+
-          '<div class="or-row"><span class="or-row-lbl">تاريخ العملية</span><span class="or-row-val" dir="ltr">'+(p.surgeryDate||'لم يُحدد بعد')+'</span></div>'+
-          '<div class="or-row"><span class="or-row-lbl">التأمين</span><span class="or-row-val"><span class="or-badge '+badge+'">'+(ins||'—')+'</span></span></div>';
-        document.getElementById('or-step2').style.display='none';
+          '<div class="or-row"><span class="or-row-lbl">التأمين</span><span class="or-row-val"><span class="or-badge '+badge+'">'+insLabel+'</span></span></div>'+
+          slotsHtml+
+          (p.coordinator?'<div class="or-row"><span class="or-row-lbl">للتواصل</span><span class="or-row-val"><a href="tel:'+p.coordinator.phone+'" style="color:var(--accent);font-weight:700;">'+p.coordinator.name+'</a></span></div>':'');
+        document.getElementById('or-step1').style.display='none';
         document.getElementById('or-step3').style.display='block';
       }
-      else{err.textContent=d.message||'كود غير صحيح';err.style.display='block';}
-    }).catch(()=>{btn.disabled=false;btn.textContent='✅ تحقق';err.textContent='تعذّر الوصول للخادم';err.style.display='block';});
+      else{err.textContent=d.message||'البيانات غير صحيحة';err.style.display='block';}
+    }).catch(()=>{btn.disabled=false;btn.textContent='🔍 عرض بياناتي';err.textContent='تعذّر الوصول للخادم — يرجى المحاولة لاحقاً';err.style.display='block';});
 }
 
 function orReset(){
   document.getElementById('or-step1').style.display='block';
-  document.getElementById('or-step2').style.display='none';
   document.getElementById('or-step3').style.display='none';
   document.getElementById('or-filenum').value='';
   document.getElementById('or-phone4').value='';
-  document.getElementById('or-otp').value='';
   document.getElementById('or-err1').style.display='none';
-  document.getElementById('or-err2').style.display='none';
-  _orFile=''; _orPhone='';
 }
 
 // Telegram WebApp disabled for web deployment
